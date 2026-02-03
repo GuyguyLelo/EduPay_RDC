@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails du compte - {{ compte.get_operateur_display }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link active" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-wallet2"></i> Détails du compte Mobile Money</h2>
+                <div class="btn-group">
+                    <a href="{% url 'etablissements_templates:compte_edit' compte.id %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="{% url 'etablissements_templates:etablissement_comptes' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations du compte</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Établissement</th>
+                                    <td>{{ compte.etablissement.nom }}</td>
+                                </tr>
+                                {% if compte.intitule %}
+                                <tr>
+                                    <th>Intitulé</th>
+                                    <td><strong>{{ compte.intitule }}</strong></td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Opérateur</th>
+                                    <td>{{ compte.get_operateur_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Numéro de compte</th>
+                                    <td><strong>{{ compte.numero_compte }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        {% if compte.actif %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Date de création</th>
+                                    <td>{{ compte.date_creation|date:"d/m/Y à H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

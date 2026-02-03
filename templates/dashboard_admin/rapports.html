@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Rapports - Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                    <i class="bi bi-building"></i> Établissements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                    <i class="bi bi-graph-up"></i> Rapports
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                    <i class="bi bi-calendar-check"></i> Abonnements
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <h2 class="mb-4"><i class="bi bi-graph-up"></i> Rapports Financiers</h2>
+            
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stat-card text-center">
+                        <div class="icon text-success">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h3>{{ revenus_mois|floatformat:2 }} $</h3>
+                        <p class="text-muted">Revenus du mois</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card text-center">
+                        <div class="icon text-info">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h3>{{ volume_mois|floatformat:2 }} $</h3>
+                        <p class="text-muted">Volume du mois</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card text-center">
+                        <div class="icon text-primary">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <h3>{{ nombre_transactions }}</h3>
+                        <p class="text-muted">Transactions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> Informations</h5>
+                </div>
+                <div class="card-body">
+                    <p>Les rapports détaillés seront disponibles prochainement.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscription - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3><i class="bi bi-person-plus"></i> Inscription</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'core_templates:register' %}">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> 
+                                Veuillez corriger les erreurs ci-dessous.
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">
+                                <i class="bi bi-envelope"></i> Email *
+                            </label>
+                            <input type="email" 
+                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                   id="id_email" 
+                                   name="email" 
+                                   required>
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">
+                                <i class="bi bi-lock"></i> Mot de passe *
+                            </label>
+                            <input type="password" 
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                                   id="id_password" 
+                                   name="password" 
+                                   required>
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback">{{ form.password.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Minimum 8 caractères
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password2" class="form-label">
+                                <i class="bi bi-lock-fill"></i> Confirmer le mot de passe *
+                            </label>
+                            <input type="password" 
+                                   class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
+                                   id="id_password2" 
+                                   name="password2" 
+                                   required>
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback">{{ form.password2.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_role" class="form-label">
+                                <i class="bi bi-person-badge"></i> Type de compte *
+                            </label>
+                            <select class="form-select {% if form.role.errors %}is-invalid{% endif %}" 
+                                    id="id_role" 
+                                    name="role" 
+                                    required>
+                                <option value="">Sélectionner...</option>
+                                <option value="ETUDIANT">Étudiant</option>
+                                <option value="ETABLISSEMENT_ADMIN">Administrateur d'établissement</option>
+                            </select>
+                            {% if form.role.errors %}
+                                <div class="invalid-feedback">{{ form.role.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-person-plus"></i> S'inscrire
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p>Déjà un compte ? 
+                            <a href="{% url 'core_templates:login' %}">Se connecter</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

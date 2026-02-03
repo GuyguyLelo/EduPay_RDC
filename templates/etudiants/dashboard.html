@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Espace Étudiant - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-person-circle"></i> Mon Espace Étudiant</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle text-primary"></i> Mes Informations</h5>
+                    <hr>
+                    <p><strong>Nom:</strong> {{ etudiant.nom_complet }}</p>
+                    <p><strong>Matricule:</strong> {{ etudiant.matricule }}</p>
+                    <p><strong>Établissement:</strong> {{ etudiant.etablissement.nom }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-list-check text-success"></i> Frais à Payer</h5>
+                    <hr>
+                    <h3 class="text-success">{{ frais_a_payer|length }}</h3>
+                    <p class="text-muted">Frais en attente</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-check-circle text-info"></i> Paiements</h5>
+                    <hr>
+                    <h3 class="text-info">{{ paiements_reussis }}</h3>
+                    <p class="text-muted">Paiements réussis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Frais à payer -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="bi bi-list-check"></i> Mes Frais à Payer</h5>
+        </div>
+        <div class="card-body">
+            {% if frais_a_payer %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Type de frais</th>
+                            <th>Année académique</th>
+                            <th>Montant</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for frais in frais_a_payer %}
+                        <tr>
+                            <td>{{ frais.nom_frais }}</td>
+                            <td>{{ frais.annee_academique }}</td>
+                            <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
+                            <td>
+                                <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-credit-card"></i> Payer
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted">Aucun frais à payer pour le moment.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Historique des paiements -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-clock-history"></i> Historique des Paiements</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type de frais</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paiement in paiements %}
+                        <tr>
+                            <td>{{ paiement.date_creation|date:"d/m/Y H:i" }}</td>
+                            <td>{{ paiement.frais.nom_frais }}</td>
+                            <td>{{ paiement.montant }} {{ paiement.devise }}</td>
+                            <td>
+                                {% if paiement.statut == 'SUCCESS' %}
+                                    <span class="badge bg-success">Réussi</span>
+                                {% elif paiement.statut == 'PENDING' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Échoué</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if paiement.statut == 'SUCCESS' %}
+                                    <a href="{% url 'paiements_templates:paiement_receipt' paiement.id %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-receipt"></i> Reçu
+                                    </a>
+                                {% elif paiement.statut == 'PENDING' %}
+                                    <a href="{% url 'paiements_templates:paiement_verifier' paiement.id %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-arrow-clockwise"></i> Vérifier
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Aucun paiement effectué</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

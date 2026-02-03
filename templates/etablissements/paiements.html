@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiements - {{ etablissement.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link active" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <h2 class="mb-4"><i class="bi bi-credit-card"></i> Historique des Paiements</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Étudiant</th>
+                                    <th>Frais</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                    <th>Référence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for paiement in paiements %}
+                                <tr>
+                                    <td>{{ paiement.date_creation|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ paiement.etudiant.nom_complet }}</td>
+                                    <td>{{ paiement.frais.nom_frais }}</td>
+                                    <td><strong>{{ paiement.montant }} {{ paiement.devise }}</strong></td>
+                                    <td>
+                                        {% if paiement.statut == 'SUCCESS' %}
+                                            <span class="badge bg-success">Réussi</span>
+                                        {% elif paiement.statut == 'PENDING' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Échoué</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ paiement.reference_flutterwave|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'etablissements_templates:paiement_detail' paiement.id %}" class="btn btn-sm btn-info" title="Voir les détails">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Aucun paiement</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

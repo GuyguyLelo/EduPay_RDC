@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement Réussi - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-success mb-3">Paiement Réussi !</h2>
+                    <p class="lead">Votre paiement a été effectué avec succès.</p>
+                    
+                    <div class="alert alert-info mt-4">
+                        <h5>Détails de la transaction</h5>
+                        <hr>
+                        <p><strong>Référence de paiement:</strong> {{ paiement.reference_flutterwave|default:paiement.transaction_id }}</p>
+                        <p><strong>Montant:</strong> {{ paiement.montant }} {{ paiement.devise }}</p>
+                        <p><strong>Date:</strong> {{ paiement.date_paiement|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'paiements_templates:paiement_receipt' paiement.id %}" class="btn btn-primary">
+                            <i class="bi bi-receipt"></i> Télécharger le reçu PDF
+                        </a>
+                        <a href="{% url 'etudiants_templates:etudiant_dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+                        </a>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Un email de confirmation a été envoyé à {{ paiement.etudiant.user.email }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

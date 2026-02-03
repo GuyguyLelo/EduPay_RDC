@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails - {{ frais.nom_frais }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                {% if user.is_etablissement_admin %}
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link active" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+                {% else %}
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-cash-coin"></i> {{ frais.nom_frais }}</h2>
+                <div class="btn-group">
+                    {% if user.is_etablissement_admin or user.is_super_admin %}
+                    <a href="{% url 'frais_templates:frais_edit' frais.id %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'frais_templates:frais_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations des frais</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Établissement</th>
+                                    <td>{{ frais.etablissement.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Nom des frais</th>
+                                    <td><strong>{{ frais.nom_frais }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Montant</th>
+                                    <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Année académique</th>
+                                    <td>{{ frais.annee_academique|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Description</th>
+                                    <td>{{ frais.description|default:"-" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        {% if frais.actif %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactif</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Date de création</th>
+                                    <td>{{ frais.date_creation|date:"d/m/Y à H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-credit-card"></i> Paiements ({{ paiements.count }})</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if paiements %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Étudiant</th>
+                                                <th>Montant</th>
+                                                <th>Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for paiement in paiements %}
+                                            <tr>
+                                                <td>{{ paiement.date_creation|date:"d/m/Y" }}</td>
+                                                <td>{{ paiement.etudiant.nom_complet }}</td>
+                                                <td>{{ paiement.montant }} {{ paiement.devise }}</td>
+                                                <td>
+                                                    {% if paiement.statut == 'SUCCESS' %}
+                                                        <span class="badge bg-success">Réussi</span>
+                                                    {% elif paiement.statut == 'PENDING' %}
+                                                        <span class="badge bg-warning">En attente</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Échoué</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Aucun paiement enregistré</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Total paiements:</strong>
+                                <span class="badge bg-primary float-end">{{ paiements.count }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Paiements réussis:</strong>
+                                <span class="badge bg-success float-end">{{ paiements_reussis }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

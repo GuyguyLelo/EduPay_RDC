@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement par QR Code - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-qr-code"></i> Paiement par QR Code</h4>
+                </div>
+                <div class="card-body text-center">
+                    <!-- Informations du paiement -->
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-info-circle"></i> Détails du paiement</h5>
+                        <hr>
+                        <p><strong>Frais:</strong> {{ paiement.frais.nom_frais }}</p>
+                        <p><strong>Montant:</strong> <span class="text-primary fw-bold">{{ paiement.montant }} {{ paiement.devise }}</span></p>
+                    </div>
+                    
+                    <!-- QR Code -->
+                    {% if qr_code_image %}
+                    <div class="mb-4">
+                        <h5 class="mb-3">Scannez ce QR Code pour payer</h5>
+                        <div class="d-flex justify-content-center">
+                            <img src="data:image/png;base64,{{ qr_code_image }}" 
+                                 alt="QR Code de paiement" 
+                                 class="img-fluid border border-3 border-success rounded p-3"
+                                 style="max-width: 300px;">
+                        </div>
+                        <p class="text-muted small mt-3">
+                            <i class="bi bi-phone"></i> Utilisez l'application de votre banque ou Mobile Money pour scanner
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Impossible de générer le QR Code. Veuillez utiliser le lien de paiement ci-dessous.
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Lien de paiement alternatif -->
+                    {% if payment_link %}
+                    <div class="mb-4">
+                        <p class="text-muted">Ou cliquez sur le lien ci-dessous :</p>
+                        <a href="{{ payment_link }}" 
+                           target="_blank" 
+                           class="btn btn-primary btn-lg">
+                            <i class="bi bi-link-45deg"></i> Ouvrir la page de paiement
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Instructions -->
+                    <div class="alert alert-light border">
+                        <h6><i class="bi bi-list-check"></i> Instructions :</h6>
+                        <ol class="text-start small">
+                            <li>Ouvrez l'application de votre banque ou Mobile Money</li>
+                            <li>Scannez le QR Code ci-dessus</li>
+                            <li>Confirmez le montant et validez le paiement</li>
+                            <li>Le statut sera mis à jour automatiquement</li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Vérification automatique -->
+                    <div class="mb-3">
+                        <p class="text-muted small">
+                            <i class="bi bi-arrow-clockwise"></i> Vérification automatique en cours...
+                        </p>
+                        <div class="spinner-border spinner-border-sm text-success" role="status">
+                            <span class="visually-hidden">Vérification...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'paiements_templates:paiement_verifier' paiement.id %}" class="btn btn-warning">
+                            <i class="bi bi-arrow-clockwise"></i> Vérifier le paiement
+                        </a>
+                        <a href="{% url 'etudiants_templates:etudiant_dashboard' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Vérification automatique toutes les 5 secondes
+    let checkInterval;
+    let checkCount = 0;
+    const maxChecks = 60; // Vérifier pendant 5 minutes maximum (60 * 5 secondes)
+    
+    function checkPaymentStatus() {
+        checkCount++;
+        if (checkCount >= maxChecks) {
+            clearInterval(checkInterval);
+            return;
+        }
+        
+        // Faire une requête AJAX pour vérifier le statut
+        fetch("{% url 'paiements_templates:paiement_verifier' paiement.id %}", {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.redirected) {
+                // Si redirection, le paiement a été confirmé
+                window.location.href = response.url;
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la vérification:', error);
+        });
+    }
+    
+    // Démarrer la vérification automatique après 5 secondes
+    setTimeout(() => {
+        checkInterval = setInterval(checkPaymentStatus, 5000); // Vérifier toutes les 5 secondes
+    }, 5000);
+    
+    // Nettoyer l'intervalle quand on quitte la page
+    window.addEventListener('beforeunload', () => {
+        if (checkInterval) {
+            clearInterval(checkInterval);
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}
+
+
+
+
+

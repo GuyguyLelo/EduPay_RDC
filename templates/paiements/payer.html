@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-credit-card"></i> Paiement des Frais</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Informations du frais -->
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-info-circle"></i> Détails du paiement</h5>
+                        <hr>
+                        <p><strong>Type de frais:</strong> {{ frais.nom_frais }}</p>
+                        <p><strong>Établissement:</strong> {{ frais.etablissement.nom }}</p>
+                        <p><strong>Année académique:</strong> {{ frais.annee_academique }}</p>
+                        <h4 class="mt-3">Montant: <span class="text-primary">{{ frais.montant }} {{ frais.devise }}</span></h4>
+                    </div>
+                    
+                    <!-- Formulaire de paiement -->
+                    <form method="post" id="paymentForm">
+                        {% csrf_token %}
+                        
+                        <!-- Choix de la méthode de paiement -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-wallet2"></i> Choisissez votre méthode de paiement
+                            </label>
+                            <div class="row g-3">
+                                <!-- QR Code (Très Rapide) -->
+                                <div class="col-md-4">
+                                    <div class="card border-success payment-method-card" data-method="QR_CODE" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <input type="radio" name="methode_paiement" value="QR_CODE" id="methode_qr" class="d-none">
+                                            <i class="bi bi-qr-code text-success" style="font-size: 3rem;"></i>
+                                            <h5 class="mt-2">📱 QR Code</h5>
+                                            <p class="text-muted small mb-0">
+                                                <i class="bi bi-lightning-charge text-success"></i> <strong>Très rapide</strong><br>
+                                                Scan et paiement
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Carte Bancaire (Rapide) -->
+                                <div class="col-md-4">
+                                    <div class="card border-primary payment-method-card" data-method="CARTE_BANCAIRE" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <input type="radio" name="methode_paiement" value="CARTE_BANCAIRE" id="methode_carte" class="d-none" checked>
+                                            <i class="bi bi-credit-card-2-front text-primary" style="font-size: 3rem;"></i>
+                                            <h5 class="mt-2">💳 Carte Bancaire</h5>
+                                            <p class="text-muted small mb-0">
+                                                <i class="bi bi-lightning-charge text-warning"></i> <strong>Rapide</strong><br>
+                                                Transaction instantanée
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mobile Money -->
+                                <div class="col-md-4">
+                                    <div class="card border-secondary payment-method-card" data-method="MOBILE_MONEY" style="cursor: pointer;">
+                                        <div class="card-body text-center">
+                                            <input type="radio" name="methode_paiement" value="MOBILE_MONEY" id="methode_mobile" class="d-none">
+                                            <i class="bi bi-phone text-secondary" style="font-size: 3rem;"></i>
+                                            <h5 class="mt-2">📱 Mobile Money</h5>
+                                            <p class="text-muted small mb-0">
+                                                M-Pesa, Orange Money, Airtel Money<br>
+                                                Confirmation requise
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire QR Code -->
+                        <div id="form-qr" class="payment-form" style="display: none;">
+                            <div class="alert alert-success">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Paiement par QR Code :</strong> Un QR Code sera généré. Scannez-le avec votre application Mobile Money ou bancaire pour payer instantanément.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email_qr" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email pour le reçu *
+                                </label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email_qr" 
+                                       name="email" 
+                                       value="{{ request.user.email }}">
+                                <small class="form-text text-muted">
+                                    Un reçu sera envoyé à cette adresse email
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire Carte Bancaire -->
+                        <div id="form-carte" class="payment-form" style="display: block;">
+                            <div class="alert alert-success">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Paiement rapide :</strong> Vous serez redirigé vers une page sécurisée pour saisir vos informations de carte.
+                                La transaction est instantanée et sécurisée.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope"></i> Email pour le reçu *
+                                </label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{{ request.user.email }}"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Un reçu sera envoyé à cette adresse email
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire Mobile Money -->
+                        <div id="form-mobile" class="payment-form" style="display: none;">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Important:</strong> Vous recevrez une demande de confirmation sur votre téléphone. 
+                                Veuillez confirmer le paiement pour finaliser la transaction.
+                            </div>
+                            
+                            {% if has_operator_error %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle"></i>
+                                <strong>Opérateur indisponible:</strong> L'opérateur sélectionné n'est pas disponible pour votre compte. 
+                                Veuillez choisir un autre opérateur dans la liste ci-dessous.
+                            </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <label for="numero_telephone" class="form-label">
+                                    <i class="bi bi-phone"></i> Numéro de téléphone Mobile Money *
+                                </label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="numero_telephone" 
+                                       name="numero_telephone" 
+                                       placeholder="+243900000000"
+                                       required>
+                                <small class="form-text text-muted">
+                                    Format: +243XXXXXXXXX (M-Pesa, Orange Money, Airtel Money)
+                                </small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="operateur" class="form-label">
+                                    <i class="bi bi-phone-vibrate"></i> Opérateur Mobile Money *
+                                </label>
+                                <select class="form-select" id="operateur" name="operateur" required>
+                                    <option value="">Sélectionner un opérateur...</option>
+                                    <option value="MPESA">M-Pesa</option>
+                                    <option value="ORANGE">Orange Money</option>
+                                    <option value="AIRTEL">Airtel Money</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Si un opérateur n'est pas disponible, essayez un autre opérateur.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="bi bi-credit-card"></i> Payer {{ frais.montant }} {{ frais.devise }}
+                            </button>
+                            <a href="{% url 'etudiants_templates:etudiant_dashboard' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Gestion du choix de méthode de paiement
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mapping des méthodes vers les IDs des radios
+        const methodToRadioId = {
+            'QR_CODE': 'methode_qr',
+            'CARTE_BANCAIRE': 'methode_carte',
+            'MOBILE_MONEY': 'methode_mobile'
+        };
+        
+        // Gestion du clic sur les cartes de méthode de paiement
+        document.querySelectorAll('.payment-method-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const method = this.dataset.method;
+                
+                // Désélectionner toutes les cartes
+                document.querySelectorAll('.payment-method-card').forEach(c => {
+                    c.classList.remove('border-primary', 'border-2', 'border-success', 'shadow');
+                    if (c.dataset.method === 'QR_CODE') {
+                        c.classList.add('border-success');
+                    } else {
+                        c.classList.add('border-secondary');
+                    }
+                });
+                
+                // Sélectionner la carte cliquée avec la bonne couleur
+                this.classList.remove('border-secondary', 'border-success', 'border-primary');
+                if (method === 'QR_CODE') {
+                    this.classList.add('border-success', 'border-2', 'shadow');
+                } else if (method === 'CARTE_BANCAIRE') {
+                    this.classList.add('border-primary', 'border-2', 'shadow');
+                } else {
+                    this.classList.add('border-primary', 'border-2', 'shadow');
+                }
+                
+                // Cocher le radio correspondant
+                const radioId = methodToRadioId[method];
+                if (radioId) {
+                    const radio = document.getElementById(radioId);
+                    if (radio) {
+                        radio.checked = true;
+                    }
+                }
+                
+                // Afficher le bon formulaire
+                const formQr = document.getElementById('form-qr');
+                const formCarte = document.getElementById('form-carte');
+                const formMobile = document.getElementById('form-mobile');
+                const numTel = document.getElementById('numero_telephone');
+                const operateur = document.getElementById('operateur');
+                const email = document.getElementById('email');
+                const emailQr = document.getElementById('email_qr');
+                
+                // Masquer tous les formulaires
+                if (formQr) formQr.style.display = 'none';
+                if (formCarte) formCarte.style.display = 'none';
+                if (formMobile) formMobile.style.display = 'none';
+                
+                if (method === 'QR_CODE') {
+                    if (formQr) formQr.style.display = 'block';
+                    if (numTel) numTel.required = false;
+                    if (operateur) operateur.required = false;
+                    if (email) email.required = false;
+                    if (emailQr) emailQr.required = true;
+                } else if (method === 'CARTE_BANCAIRE') {
+                    if (formCarte) formCarte.style.display = 'block';
+                    if (numTel) numTel.required = false;
+                    if (operateur) operateur.required = false;
+                    if (email) email.required = true;
+                    if (emailQr) emailQr.required = false;
+                } else { // MOBILE_MONEY
+                    if (formMobile) formMobile.style.display = 'block';
+                    if (numTel) numTel.required = true;
+                    if (operateur) operateur.required = true;
+                    if (email) email.required = false;
+                    if (emailQr) emailQr.required = false;
+                }
+            });
+        });
+        
+        // Initialiser l'affichage (carte bancaire par défaut)
+        const formCarte = document.getElementById('form-carte');
+        const formQr = document.getElementById('form-qr');
+        const formMobile = document.getElementById('form-mobile');
+        const numTel = document.getElementById('numero_telephone');
+        const operateur = document.getElementById('operateur');
+        const email = document.getElementById('email');
+        const emailQr = document.getElementById('email_qr');
+        
+        // Afficher le formulaire carte par défaut
+        if (formCarte) formCarte.style.display = 'block';
+        if (formQr) formQr.style.display = 'none';
+        if (formMobile) formMobile.style.display = 'none';
+        
+        // Définir les champs requis
+        if (numTel) numTel.required = false;
+        if (operateur) operateur.required = false;
+        if (email) email.required = true;
+        if (emailQr) emailQr.required = false;
+        
+        // Cocher le radio carte bancaire par défaut
+        const radioCarte = document.getElementById('methode_carte');
+        if (radioCarte) radioCarte.checked = true;
+        
+        // Mettre en évidence la carte bancaire par défaut
+        const defaultCard = document.querySelector('.payment-method-card[data-method="CARTE_BANCAIRE"]');
+        if (defaultCard) {
+            defaultCard.classList.remove('border-secondary', 'border-success');
+            defaultCard.classList.add('border-primary', 'border-2', 'shadow');
+        }
+        
+        // Gestion de la soumission du formulaire
+        const paymentForm = document.getElementById('paymentForm');
+        if (paymentForm) {
+            paymentForm.addEventListener('submit', function(e) {
+                const btn = document.getElementById('submitBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Traitement...';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Établissement - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <h2 class="mb-4">
+                <i class="bi bi-building"></i> {{ etablissement.nom }}
+            </h2>
+            
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-primary">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>{{ stats.total_etudiants }}</h3>
+                        <p class="text-muted">Étudiants</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h3>{{ stats.paiements_reussis }}</h3>
+                        <p class="text-muted">Paiements réussis</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-info">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h3>{{ stats.montant_total|floatformat:2 }} $</h3>
+                        <p class="text-muted">Montant total</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-warning">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h3>{{ stats.paiements_en_attente }}</h3>
+                        <p class="text-muted">En attente</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tableaux -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-people"></i> Étudiants récents</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Matricule</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for etudiant in etudiants_recents %}
+                                        <tr>
+                                            <td>{{ etudiant.nom_complet }}</td>
+                                            <td>{{ etudiant.matricule }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="2" class="text-center text-muted">Aucun étudiant</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-credit-card"></i> Paiements récents</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Étudiant</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for paiement in paiements_recents %}
+                                        <tr>
+                                            <td>{{ paiement.etudiant.nom_complet }}</td>
+                                            <td>{{ paiement.montant }} {{ paiement.devise }}</td>
+                                            <td>
+                                                {% if paiement.statut == 'SUCCESS' %}
+                                                    <span class="badge bg-success">Réussi</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">Aucun paiement</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

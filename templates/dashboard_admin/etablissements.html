@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Établissements - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                    <i class="bi bi-building"></i> Établissements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                    <i class="bi bi-graph-up"></i> Rapports
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                    <i class="bi bi-calendar-check"></i> Abonnements
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-building"></i> Gestion des Établissements</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEtablissementModal">
+                    <i class="bi bi-plus-circle"></i> Ajouter un établissement
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Email</th>
+                                    <th>Téléphone</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for etab in etablissements %}
+                                <tr>
+                                    <td>{{ etab.nom }}</td>
+                                    <td>{{ etab.get_type_display }}</td>
+                                    <td>{{ etab.email }}</td>
+                                    <td>{{ etab.telephone }}</td>
+                                    <td>
+                                        {% if etab.statut == 'ACTIF' %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% elif etab.statut == 'SUSPENDU' %}
+                                            <span class="badge bg-danger">Suspendu</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'dashboard_admin_templates:etablissement_detail' etab.id %}" class="btn btn-sm btn-info" title="Voir les détails">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'dashboard_admin_templates:etablissement_edit' etab.id %}" class="btn btn-sm btn-warning" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            {% if etab.statut == 'ACTIF' %}
+                                                <a href="{% url 'dashboard_admin_templates:api_suspendre_etablissement' etab.id %}" class="btn btn-sm btn-danger" title="Suspendre">
+                                                    <i class="bi bi-pause-circle"></i>
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'dashboard_admin_templates:api_activer_etablissement' etab.id %}" class="btn btn-sm btn-success" title="Activer">
+                                                    <i class="bi bi-play-circle"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Aucun établissement</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Établissement -->
+<div class="modal fade" id="addEtablissementModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-building"></i> Ajouter un établissement
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard_admin_templates:dashboard_etablissements' %}" enctype="multipart/form-data" id="addEtablissementForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Erreurs dans le formulaire :</strong>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                <i class="bi bi-building"></i> {{ form.nom.label }} *
+                            </label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}
+                                <div class="text-danger small">{{ form.nom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.type.id_for_label }}" class="form-label">
+                                <i class="bi bi-book"></i> {{ form.type.label }} *
+                            </label>
+                            {{ form.type }}
+                            {% if form.type.errors %}
+                                <div class="text-danger small">{{ form.type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                <i class="bi bi-phone"></i> {{ form.telephone.label }} *
+                            </label>
+                            {{ form.telephone }}
+                            {% if form.telephone.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.telephone.errors %}
+                                        <div><i class="bi bi-exclamation-circle"></i> {{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Format: +243XXXXXXXXX ou 0XXXXXXXXX</small>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="bi bi-envelope"></i> {{ form.email.label }} *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.adresse.id_for_label }}" class="form-label">
+                                <i class="bi bi-geo-alt"></i> {{ form.adresse.label }} *
+                            </label>
+                            {{ form.adresse }}
+                            {% if form.adresse.errors %}
+                                <div class="text-danger small">{{ form.adresse.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.logo.id_for_label }}" class="form-label">
+                                <i class="bi bi-image"></i> {{ form.logo.label }}
+                            </label>
+                            {{ form.logo }}
+                            {% if form.logo.errors %}
+                                <div class="text-danger small">{{ form.logo.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Format: JPG, PNG (max 5MB)</small>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3">
+                        <i class="bi bi-person-gear"></i> Administrateur de l'établissement (optionnel)
+                    </h6>
+                    <p class="text-muted small mb-3">
+                        Si vous fournissez ces informations, un compte administrateur sera créé automatiquement pour cet établissement.
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.admin_email.id_for_label }}" class="form-label">
+                                <i class="bi bi-envelope-at"></i> {{ form.admin_email.label }}
+                            </label>
+                            {{ form.admin_email }}
+                            {% if form.admin_email.errors %}
+                                <div class="text-danger small">{{ form.admin_email.errors }}</div>
+                            {% endif %}
+                            {% if form.admin_email.help_text %}
+                                <small class="form-text text-muted">{{ form.admin_email.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.admin_password.id_for_label }}" class="form-label">
+                                <i class="bi bi-lock"></i> {{ form.admin_password.label }}
+                            </label>
+                            {{ form.admin_password }}
+                            {% if form.admin_password.errors %}
+                                <div class="text-danger small">{{ form.admin_password.errors }}</div>
+                            {% endif %}
+                            {% if form.admin_password.help_text %}
+                                <small class="form-text text-muted">{{ form.admin_password.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> Créer l'établissement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Gestion de la soumission du formulaire
+    document.getElementById('addEtablissementForm')?.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Création...';
+    });
+    
+    // Réinitialiser le formulaire quand le modal est fermé
+    document.getElementById('addEtablissementModal')?.addEventListener('hidden.bs.modal', function() {
+        const form = document.getElementById('addEtablissementForm');
+        if (form) {
+            form.reset();
+            // Réinitialiser les erreurs
+            const alerts = form.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.remove());
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Créer l\'établissement';
+            }
+        }
+    });
+    
+    // Si le formulaire a des erreurs, rouvrir le modal
+    {% if form.errors %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('addEtablissementModal'));
+            modal.show();
+        });
+    {% endif %}
+</script>
+{% endblock %}
+{% endblock %}

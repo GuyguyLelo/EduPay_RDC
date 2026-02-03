@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Mon Profil - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-person-circle"></i> Mon Profil</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-envelope"></i> Email:</strong>
+                            <p>{{ user.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-person-badge"></i> Rôle:</strong>
+                            <p>
+                                {% if user.role == 'SUPER_ADMIN' %}
+                                    <span class="badge bg-danger">Super Administrateur</span>
+                                {% elif user.role == 'ETABLISSEMENT_ADMIN' %}
+                                    <span class="badge bg-primary">Administrateur Établissement</span>
+                                {% else %}
+                                    <span class="badge bg-success">Étudiant</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-calendar"></i> Date d'inscription:</strong>
+                            <p>{{ user.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-clock-history"></i> Dernière connexion:</strong>
+                            <p>{% if user.last_login %}{{ user.last_login|date:"d/m/Y H:i" }}{% else %}Jamais{% endif %}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-toggle-on"></i> Statut:</strong>
+                            <p>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactif</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-warning">
+                            <i class="bi bi-key"></i> Changer le mot de passe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

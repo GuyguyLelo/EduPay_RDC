@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}Étudiants - {{ etablissement.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link active" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-people"></i> Gestion des Étudiants</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEtudiantModal">
+                    <i class="bi bi-person-plus"></i> Ajouter un étudiant
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Matricule</th>
+                                    <th>Téléphone</th>
+                                    <th>Date d'inscription</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for etudiant in etudiants %}
+                                <tr>
+                                    <td>{{ etudiant.nom }}</td>
+                                    <td>{{ etudiant.prenom }}</td>
+                                    <td><strong>{{ etudiant.matricule }}</strong></td>
+                                    <td>{{ etudiant.telephone|default:"-" }}</td>
+                                    <td>{{ etudiant.date_inscription|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'etablissements_templates:etudiant_detail' etudiant.id %}" class="btn btn-sm btn-info" title="Voir les détails">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'etablissements_templates:etudiant_edit' etudiant.id %}" class="btn btn-sm btn-warning" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Aucun étudiant enregistré</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Étudiant -->
+<div class="modal fade" id="addEtudiantModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus"></i> Ajouter un étudiant
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'etablissements_templates:etablissement_etudiants' %}" id="addEtudiantForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Erreurs dans le formulaire :</strong>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-building"></i> Établissement
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="bi bi-building text-primary"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control bg-light" 
+                                   value="{{ etablissement.nom }}" 
+                                   readonly 
+                                   style="cursor: not-allowed;">
+                        </div>
+                        <small class="form-text text-muted">
+                            <i class="bi bi-info-circle"></i> L'établissement est automatiquement défini
+                        </small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-3">
+                        <i class="bi bi-person"></i> Informations personnelles
+                    </h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nom.id_for_label }}" class="form-label">
+                                <i class="bi bi-person"></i> {{ form.nom.label }} *
+                            </label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}
+                                <div class="text-danger small">{{ form.nom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.prenom.id_for_label }}" class="form-label">
+                                <i class="bi bi-person-badge"></i> {{ form.prenom.label }} *
+                            </label>
+                            {{ form.prenom }}
+                            {% if form.prenom.errors %}
+                                <div class="text-danger small">{{ form.prenom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.matricule.id_for_label }}" class="form-label">
+                                <i class="bi bi-123"></i> {{ form.matricule.label }} *
+                            </label>
+                            {{ form.matricule }}
+                            {% if form.matricule.errors %}
+                                <div class="text-danger small">{{ form.matricule.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Le matricule sera converti en majuscules</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telephone.id_for_label }}" class="form-label">
+                                <i class="bi bi-phone"></i> {{ form.telephone.label }}
+                            </label>
+                            {{ form.telephone }}
+                            {% if form.telephone.errors %}
+                                <div class="text-danger small">{{ form.telephone.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Format: +243XXXXXXXXX ou 0XXXXXXXXX</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="mb-3">
+                        <i class="bi bi-envelope-at"></i> Compte utilisateur
+                    </h6>
+                    <p class="text-muted small mb-3">
+                        Un compte utilisateur sera créé automatiquement pour permettre à l'étudiant de se connecter.
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="bi bi-envelope"></i> {{ form.email.label }} *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                            {% if form.email.help_text %}
+                                <small class="form-text text-muted">{{ form.email.help_text }}</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">
+                                <i class="bi bi-lock"></i> {{ form.password.label }}
+                            </label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small">{{ form.password.errors }}</div>
+                            {% endif %}
+                            {% if form.password.help_text %}
+                                <small class="form-text text-muted">{{ form.password.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitEtudiantBtn">
+                        <i class="bi bi-check-circle"></i> Créer l'étudiant
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Gestion de la soumission du formulaire
+    document.getElementById('addEtudiantForm')?.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitEtudiantBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Création...';
+    });
+    
+    // Réinitialiser le formulaire quand le modal est fermé
+    document.getElementById('addEtudiantModal')?.addEventListener('hidden.bs.modal', function() {
+        const form = document.getElementById('addEtudiantForm');
+        if (form) {
+            form.reset();
+            const alerts = form.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.remove());
+            const submitBtn = document.getElementById('submitEtudiantBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Créer l\'étudiant';
+            }
+        }
+    });
+    
+    // Convertir le matricule en majuscules
+    document.getElementById('{{ form.matricule.id_for_label }}')?.addEventListener('input', function(e) {
+        this.value = this.value.toUpperCase();
+    });
+    
+    // Si le formulaire a des erreurs, rouvrir le modal
+    {% if form.errors %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('addEtudiantModal'));
+            modal.show();
+        });
+    {% endif %}
+</script>
+{% endblock %}
+{% endblock %}
+

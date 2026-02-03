@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Frais - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-cash-coin"></i> Gestion des Frais</h2>
+        {% if user.is_etablissement_admin or user.is_super_admin %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFraisModal">
+            <i class="bi bi-plus-circle"></i> Ajouter des frais
+        </button>
+        {% endif %}
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nom des frais</th>
+                            <th>Établissement</th>
+                            <th>Montant</th>
+                            <th>Année académique</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for frais in frais_list %}
+                        <tr>
+                            <td>{{ frais.nom_frais }}</td>
+                            <td>{{ frais.etablissement.nom }}</td>
+                            <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
+                            <td>{{ frais.annee_academique }}</td>
+                            <td>
+                                {% if frais.actif %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactif</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'frais_templates:frais_detail' frais.id %}" class="btn btn-sm btn-info" title="Voir les détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if user.is_etablissement_admin or user.is_super_admin %}
+                                    <a href="{% url 'frais_templates:frais_edit' frais.id %}" class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted">Aucun frais enregistré</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Frais -->
+{% if user.is_etablissement_admin or user.is_super_admin %}
+<div class="modal fade" id="addFraisModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-cash-coin"></i> Ajouter des frais
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'frais_templates:frais_list' %}" id="addFraisForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Erreurs dans le formulaire :</strong>
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li><strong>{{ field|capfirst }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        {% if user.is_super_admin %}
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.etablissement.id_for_label }}" class="form-label">
+                                <i class="bi bi-building"></i> {{ form.etablissement.label }} *
+                            </label>
+                            {{ form.etablissement }}
+                            {% if form.etablissement.errors %}
+                                <div class="text-danger small">{{ form.etablissement.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% elif user.is_etablissement_admin %}
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-building"></i> Établissement
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-building text-primary"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control bg-light" 
+                                       value="{{ user.etablissement_admin.nom }}" 
+                                       readonly 
+                                       style="cursor: not-allowed;">
+                            </div>
+                            {{ form.etablissement }}
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> L'établissement est automatiquement défini et ne peut pas être modifié
+                            </small>
+                        </div>
+                        {% else %}
+                            {{ form.etablissement }}
+                        {% endif %}
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.nom_frais.id_for_label }}" class="form-label">
+                                <i class="bi bi-tag"></i> {{ form.nom_frais.label }} *
+                            </label>
+                            {{ form.nom_frais }}
+                            {% if form.nom_frais.errors %}
+                                <div class="text-danger small">{{ form.nom_frais.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.montant.id_for_label }}" class="form-label">
+                                <i class="bi bi-currency-dollar"></i> {{ form.montant.label }} *
+                            </label>
+                            {{ form.montant }}
+                            {% if form.montant.errors %}
+                                <div class="text-danger small">{{ form.montant.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.devise.id_for_label }}" class="form-label">
+                                <i class="bi bi-cash-stack"></i> {{ form.devise.label }} *
+                            </label>
+                            {{ form.devise }}
+                            {% if form.devise.errors %}
+                                <div class="text-danger small">{{ form.devise.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.annee_academique.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar"></i> {{ form.annee_academique.label }} *
+                            </label>
+                            {{ form.annee_academique }}
+                            {% if form.annee_academique.errors %}
+                                <div class="text-danger small">{{ form.annee_academique.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Format: 2024-2025 ou 2024/2025</small>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="bi bi-text-paragraph"></i> {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                {{ form.actif }}
+                                <label class="form-check-label" for="{{ form.actif.id_for_label }}">
+                                    <i class="bi bi-toggle-on"></i> {{ form.actif.label }}
+                                </label>
+                                <small class="form-text text-muted d-block">Les frais actifs sont visibles par les étudiants</small>
+                            </div>
+                            {% if form.actif.errors %}
+                                <div class="text-danger small">{{ form.actif.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitFraisBtn">
+                        <i class="bi bi-check-circle"></i> Créer les frais
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Gestion de la soumission du formulaire
+    document.getElementById('addFraisForm')?.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitFraisBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Création...';
+    });
+    
+    // Réinitialiser le formulaire quand le modal est fermé
+    document.getElementById('addFraisModal')?.addEventListener('hidden.bs.modal', function() {
+        const form = document.getElementById('addFraisForm');
+        if (form) {
+            form.reset();
+            const alerts = form.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.remove());
+            const submitBtn = document.getElementById('submitFraisBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Créer les frais';
+            }
+        }
+    });
+    
+    // Si le formulaire a des erreurs, rouvrir le modal
+    {% if form.errors %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('addFraisModal'));
+            modal.show();
+        });
+    {% endif %}
+</script>
+{% endblock %}
+{% endif %}
+{% endblock %}
+

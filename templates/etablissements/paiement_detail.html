@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails du paiement #{{ paiement.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_etudiants' %}">
+                    <i class="bi bi-people"></i> Étudiants
+                </a>
+                <a class="nav-link" href="{% url 'frais_templates:frais_list' %}">
+                    <i class="bi bi-cash-coin"></i> Frais
+                </a>
+                <a class="nav-link active" href="{% url 'etablissements_templates:etablissement_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'etablissements_templates:etablissement_comptes' %}">
+                    <i class="bi bi-wallet2"></i> Comptes Mobile Money
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <!-- En-tête avec statut -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-credit-card-2-front"></i> Paiement #{{ paiement.id }}</h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-calendar3"></i> Créé le {{ paiement.date_creation|date:"d/m/Y à H:i" }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    {% if paiement.statut == 'SUCCESS' %}
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle"></i> Réussi
+                        </span>
+                    {% elif paiement.statut == 'PENDING' %}
+                        <span class="badge bg-warning fs-6 px-3 py-2">
+                            <i class="bi bi-clock-history"></i> En attente
+                        </span>
+                    {% elif paiement.statut == 'FAILED' %}
+                        <span class="badge bg-danger fs-6 px-3 py-2">
+                            <i class="bi bi-x-circle"></i> Échoué
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6 px-3 py-2">
+                            <i class="bi bi-dash-circle"></i> Annulé
+                        </span>
+                    {% endif %}
+                    <div class="mt-2">
+                        <a href="{% url 'etablissements_templates:etablissement_paiements' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Colonne principale -->
+                <div class="col-lg-8">
+                    <!-- Informations générales -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations générales</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi bi-person-circle text-primary fs-4 me-3"></i>
+                                        <div>
+                                            <small class="text-muted d-block">Étudiant</small>
+                                            <strong>{{ paiement.etudiant.nom_complet }}</strong>
+                                            <br>
+                                            <span class="text-muted small">Matricule: {{ paiement.etudiant.matricule }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi bi-book text-primary fs-4 me-3"></i>
+                                        <div>
+                                            <small class="text-muted d-block">Frais</small>
+                                            <strong>{{ paiement.frais.nom_frais }}</strong>
+                                            <br>
+                                            <span class="text-muted small">Année: {{ paiement.frais.annee_academique }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informations financières -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Informations financières</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center bg-light">
+                                        <small class="text-muted d-block mb-1">Montant total</small>
+                                        <h4 class="text-primary mb-0">{{ paiement.montant|floatformat:0 }} {{ paiement.devise }}</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center bg-light">
+                                        <small class="text-muted d-block mb-1">Commission</small>
+                                        <h5 class="text-warning mb-0">{{ paiement.commission_plateforme|floatformat:0 }} {{ paiement.devise }}</h5>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 text-center bg-success text-white">
+                                        <small class="d-block mb-1 opacity-75">Montant reçu</small>
+                                        <h4 class="mb-0">{{ paiement.montant_etablissement|floatformat:0 }} {{ paiement.devise }}</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails de la transaction -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-receipt"></i> Détails de la transaction</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <tbody>
+                                        {% if paiement.date_paiement %}
+                                        <tr>
+                                            <th width="35%"><i class="bi bi-calendar-check text-primary"></i> Date de paiement</th>
+                                            <td><strong>{{ paiement.date_paiement|date:"d/m/Y à H:i" }}</strong></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if paiement.reference_flutterwave %}
+                                        <tr>
+                                            <th><i class="bi bi-hash text-primary"></i> Référence de paiement</th>
+                                            <td><code class="bg-light p-2 rounded">{{ paiement.reference_flutterwave }}</code></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if paiement.transaction_id %}
+                                        <tr>
+                                            <th><i class="bi bi-key text-primary"></i> ID Transaction</th>
+                                            <td><code class="bg-light p-2 rounded">{{ paiement.transaction_id }}</code></td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th><i class="bi bi-wallet2 text-primary"></i> Méthode de paiement</th>
+                                            <td>
+                                                {% if paiement.methode_paiement == 'MOBILE_MONEY' %}
+                                                    <span class="badge bg-primary"><i class="bi bi-phone"></i> Mobile Money</span>
+                                                {% elif paiement.methode_paiement == 'CARTE_BANCAIRE' %}
+                                                    <span class="badge bg-info"><i class="bi bi-credit-card"></i> Carte Bancaire</span>
+                                                {% elif paiement.methode_paiement == 'QR_CODE' %}
+                                                    <span class="badge bg-success"><i class="bi bi-qr-code"></i> QR Code</span>
+                                                {% else %}
+                                                    {{ paiement.get_methode_paiement_display }}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% if paiement.numero_telephone %}
+                                        <tr>
+                                            <th><i class="bi bi-telephone text-primary"></i> Numéro de téléphone</th>
+                                            <td><strong>{{ paiement.numero_telephone }}</strong></td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if paiement.operateur %}
+                                        <tr>
+                                            <th><i class="bi bi-phone-vibrate text-primary"></i> Opérateur Mobile Money</th>
+                                            <td>
+                                                <span class="badge bg-secondary">
+                                                    {% if paiement.get_operateur_display %}
+                                                        {{ paiement.get_operateur_display }}
+                                                    {% else %}
+                                                        {{ paiement.operateur }}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if paiement.email_paiement %}
+                                        <tr>
+                                            <th><i class="bi bi-envelope text-primary"></i> Email</th>
+                                            <td>{{ paiement.email_paiement }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message d'erreur si présent -->
+                    {% if paiement.message_erreur and 'http' not in paiement.message_erreur|lower %}
+                    <div class="card mb-4 border-danger shadow-sm">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Message d'erreur</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-danger mb-0">{{ paiement.message_erreur }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Colonne latérale -->
+                <div class="col-lg-4">
+                    <!-- Actions rapides -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if paiement.statut == 'SUCCESS' %}
+                            <a href="{% url 'paiements_templates:paiement_receipt' paiement.id %}" class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-download"></i> Télécharger le reçu PDF
+                            </a>
+                            {% endif %}
+                            {% if paiement.statut == 'PENDING' %}
+                            <a href="{% url 'paiements_templates:paiement_verifier' paiement.id %}" class="btn btn-warning w-100 mb-2">
+                                <i class="bi bi-arrow-clockwise"></i> Vérifier le statut
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'etablissements_templates:etablissement_paiements' %}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-list"></i> Voir tous les paiements
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Résumé -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Résumé</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                                    <strong>Statut:</strong>
+                                    {% if paiement.statut == 'SUCCESS' %}
+                                        <span class="text-success">Réussi</span>
+                                    {% elif paiement.statut == 'PENDING' %}
+                                        <span class="text-warning">En attente</span>
+                                    {% elif paiement.statut == 'FAILED' %}
+                                        <span class="text-danger">Échoué</span>
+                                    {% else %}
+                                        <span class="text-secondary">Annulé</span>
+                                    {% endif %}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                                    <strong>Créé:</strong> {{ paiement.date_creation|date:"d/m/Y H:i" }}
+                                </li>
+                                {% if paiement.date_paiement %}
+                                <li class="mb-2">
+                                    <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                                    <strong>Payé:</strong> {{ paiement.date_paiement|date:"d/m/Y H:i" }}
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                                    <strong>Commission:</strong> {{ paiement.taux_commission }}%
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

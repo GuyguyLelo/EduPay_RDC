@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails de l'abonnement - {{ abonnement.etablissement.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                    <i class="bi bi-building"></i> Établissements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                    <i class="bi bi-graph-up"></i> Rapports
+                </a>
+                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                    <i class="bi bi-calendar-check"></i> Abonnements
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-calendar-check"></i> Abonnement - {{ abonnement.etablissement.nom }}</h2>
+                <div class="btn-group">
+                    <a href="{% url 'dashboard_admin_templates:abonnement_edit' abonnement.id %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations de l'abonnement</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Établissement</th>
+                                    <td>{{ abonnement.etablissement.nom }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Type</th>
+                                    <td>{{ abonnement.get_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Statut</th>
+                                    <td>
+                                        {% if abonnement.is_actif %}
+                                            <span class="badge bg-success">Actif</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ abonnement.get_statut_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Montant mensuel</th>
+                                    <td><strong>{{ abonnement.montant_mensuel }} $</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Date de début</th>
+                                    <td>{{ abonnement.date_debut|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de fin</th>
+                                    <td>{% if abonnement.date_fin %}{{ abonnement.date_fin|date:"d/m/Y" }}{% else %}Illimité{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Limite d'étudiants</th>
+                                    <td>{% if abonnement.limite_etudiants == -1 %}Illimité{% else %}{{ abonnement.limite_etudiants }}{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Limite de transactions/mois</th>
+                                    <td>{% if abonnement.limite_transactions_mois == -1 %}Illimité{% else %}{{ abonnement.limite_transactions_mois }}{% endif %}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date de création</th>
+                                    <td>{{ abonnement.date_creation|date:"d/m/Y à H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Dernière modification</th>
+                                    <td>{{ abonnement.date_modification|date:"d/m/Y à H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

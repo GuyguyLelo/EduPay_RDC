@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiements - Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                    <i class="bi bi-building"></i> Établissements
+                </a>
+                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                    <i class="bi bi-graph-up"></i> Rapports
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                    <i class="bi bi-calendar-check"></i> Abonnements
+                </a>
+            </nav>
+        </div>
+        
+        <div class="col-md-10">
+            <h2 class="mb-4"><i class="bi bi-credit-card"></i> Gestion des Paiements</h2>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Étudiant</th>
+                                    <th>Établissement</th>
+                                    <th>Frais</th>
+                                    <th>Montant</th>
+                                    <th>Commission</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for paiement in paiements %}
+                                <tr>
+                                    <td>{{ paiement.date_creation|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ paiement.etudiant.nom_complet }}</td>
+                                    <td>{{ paiement.etudiant.etablissement.nom }}</td>
+                                    <td>{{ paiement.frais.nom_frais }}</td>
+                                    <td><strong>{{ paiement.montant }} {{ paiement.devise }}</strong></td>
+                                    <td>{{ paiement.commission_plateforme }} {{ paiement.devise }}</td>
+                                    <td>
+                                        {% if paiement.statut == 'SUCCESS' %}
+                                            <span class="badge bg-success">Réussi</span>
+                                        {% elif paiement.statut == 'PENDING' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Échoué</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'dashboard_admin_templates:paiement_detail' paiement.id %}" class="btn btn-sm btn-info" title="Voir les détails">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">Aucun paiement</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

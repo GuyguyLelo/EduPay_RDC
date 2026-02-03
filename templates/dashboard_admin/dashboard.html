@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Super Admin - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <nav class="nav flex-column">
+                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                    <i class="bi bi-building"></i> Établissements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                    <i class="bi bi-credit-card"></i> Paiements
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                    <i class="bi bi-graph-up"></i> Rapports
+                </a>
+                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                    <i class="bi bi-calendar-check"></i> Abonnements
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-10">
+            <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard Super Admin</h2>
+            
+            <!-- Statistiques -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-primary">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h3>{{ stats.total_etablissements }}</h3>
+                        <p class="text-muted">Établissements</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-success">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>{{ stats.total_etudiants }}</h3>
+                        <p class="text-muted">Étudiants</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-info">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <h3>{{ stats.total_paiements }}</h3>
+                        <p class="text-muted">Paiements</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="icon text-warning">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h3>{{ stats.revenus_totaux|floatformat:2 }} $</h3>
+                        <p class="text-muted">Revenus totaux</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tableaux récents -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-building"></i> Établissements récents</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Type</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for etab in etablissements_recents %}
+                                        <tr>
+                                            <td>{{ etab.nom }}</td>
+                                            <td>{{ etab.get_type_display }}</td>
+                                            <td>
+                                                {% if etab.statut == 'ACTIF' %}
+                                                    <span class="badge bg-success">Actif</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">{{ etab.get_statut_display }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">Aucun établissement</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-credit-card"></i> Paiements récents</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Étudiant</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for paiement in paiements_recents %}
+                                        <tr>
+                                            <td>{{ paiement.etudiant.nom_complet }}</td>
+                                            <td>{{ paiement.montant }} {{ paiement.devise }}</td>
+                                            <td>
+                                                {% if paiement.statut == 'SUCCESS' %}
+                                                    <span class="badge bg-success">Réussi</span>
+                                                {% elif paiement.statut == 'PENDING' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Échoué</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">Aucun paiement</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
