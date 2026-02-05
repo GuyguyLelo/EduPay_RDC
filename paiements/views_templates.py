@@ -2,9 +2,12 @@
 Vues templates pour les paiements
 """
 import logging
+import time
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
+from django.urls import reverse
 from django.http import HttpResponse
 from frais.models import Frais
 from .models import Paiement, StatutPaiement
@@ -16,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def payer_frais(request, frais_id):
-    """Page de paiement d'un frais"""
+    """
+    Page de paiement d'un frais - Méthode CinetPay Seamless (SDK JavaScript).
+    Étape 1: formulaire coordonnées client.
+    Étape 2: bouton qui ouvre CinetPay.getCheckout() (Mobile Money, Carte, etc.).
+    """
     if not request.user.is_etudiant:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Accès refusé")
@@ -24,12 +31,10 @@ def payer_frais(request, frais_id):
     frais = get_object_or_404(Frais, id=frais_id, actif=True)
     etudiant = request.user.etudiant
     
-    # Vérifier si le frais appartient à l'établissement de l'étudiant
     if frais.etablissement != etudiant.etablissement:
         messages.error(request, "Ce frais ne vous concerne pas.")
         return redirect('etudiants_templates:etudiant_dashboard')
     
-    # Vérifier si déjà payé
     paiement_existant = Paiement.objects.filter(
         etudiant=etudiant,
         frais=frais,
@@ -41,108 +46,96 @@ def payer_frais(request, frais_id):
         return redirect('etudiants_templates:etudiant_dashboard')
     
     if request.method == 'POST':
-        methode_paiement = request.POST.get('methode_paiement', 'MOBILE_MONEY')
+        # Vérifier la configuration CinetPay
+        api_key = getattr(settings, 'CINETPAY_API_KEY', '')
+        site_id = getattr(settings, 'CINETPAY_SITE_ID', '')
+        if not api_key or not site_id:
+            messages.error(request, "Paiement non configuré. Veuillez contacter l'administrateur.")
+            return redirect('etudiants_templates:etudiant_dashboard')
+        
+        customer_name = request.POST.get('customer_name', '').strip() or etudiant.nom
+        customer_surname = request.POST.get('customer_surname', '').strip() or etudiant.prenom
+        customer_email = request.POST.get('customer_email', '').strip() or request.user.email
+        customer_phone_number = request.POST.get('customer_phone_number', '').strip()
+        
+        if not customer_phone_number:
+            messages.error(request, "Le numéro de téléphone est obligatoire.")
+            return render(request, 'paiements/payer.html', {
+                'frais': frais,
+                'etudiant': etudiant,
+                'has_operator_error': False
+            })
         
         # Créer le paiement
-        from django.conf import settings
-        from decimal import Decimal
-        from .models import MethodePaiement
-        
         paiement = Paiement.objects.create(
             etudiant=etudiant,
             frais=frais,
             montant=frais.montant,
             devise=frais.devise,
-            methode_paiement=methode_paiement,
+            methode_paiement='MOBILE_MONEY',  # Seamless gère tous les canaux
             statut=StatutPaiement.PENDING,
-            taux_commission=settings.COMMISSION_RATE
+            taux_commission=getattr(settings, 'COMMISSION_RATE', 2.0),
+            numero_telephone=customer_phone_number,
+            email_paiement=customer_email or None
         )
         
-        # Initier le paiement selon la méthode choisie
+        # ID de transaction unique pour CinetPay (et pour le webhook)
+        transaction_id = f"EDUPAY_{paiement.id}_{int(time.time())}"
+        paiement.transaction_id = transaction_id
+        paiement.reference_flutterwave = transaction_id
+        paiement.save()
+        
+        # URL de notification pour le webhook
+        site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
         try:
-            # Utiliser CinetPay
-            try:
-                service = CinetPayService()
-            except (ValueError, Exception) as e:
-                logger.error(f"Erreur lors de l'initialisation de CinetPay: {e}")
-                messages.error(request, "Aucune passerelle de paiement configurée. Veuillez configurer CinetPay dans .env")
-                return redirect('etudiants_templates:etudiant_dashboard')
-            
-            if methode_paiement == MethodePaiement.CARTE_BANCAIRE:
-                # Paiement par carte bancaire (plus rapide)
-                email = request.POST.get('email', etudiant.user.email)
-                result = service.initier_paiement_carte_bancaire(
-                    paiement=paiement,
-                    email=email
-                )
-                
-                if result.get('success'):
-                    # Rediriger vers la page de paiement
-                    payment_link = result.get('payment_link')
-                    if payment_link:
-                        return redirect(payment_link)
-                    else:
-                        messages.success(request, "Paiement par carte initié avec succès.")
-                        return redirect('paiements_templates:paiement_success', paiement_id=paiement.id)
-                else:
-                    messages.error(request, f"Erreur: {result.get('message', 'Erreur inconnue')}")
-            
-            elif methode_paiement == MethodePaiement.QR_CODE:
-                # Paiement par QR Code (très rapide)
-                email = request.POST.get('email', etudiant.user.email)
-                result = service.initier_paiement_qr_code(
-                    paiement=paiement,
-                    email=email
-                )
-                
-                if result.get('success'):
-                    # Rediriger vers la page d'affichage du QR Code
-                    return redirect('paiements_templates:paiement_qr_code', paiement_id=paiement.id)
-                else:
-                    messages.error(request, f"Erreur: {result.get('message', 'Erreur inconnue')}")
-            
-            else:
-                # Paiement Mobile Money (méthode traditionnelle)
-                numero_telephone = request.POST.get('numero_telephone')
-                operateur = request.POST.get('operateur')
-                
-                paiement.numero_telephone = numero_telephone
-                paiement.operateur = operateur
-                paiement.save()
-                
-                result = service.initier_paiement_mobile_money(
-                    paiement=paiement,
-                    numero_telephone=numero_telephone,
-                    operateur=operateur
-                )
-                
-                if result.get('success'):
-                    messages.success(request, "Paiement initié avec succès. Veuillez confirmer sur votre téléphone.")
-                    return redirect('paiements_templates:paiement_success', paiement_id=paiement.id)
-                else:
-                    error_message = result.get('message', 'Erreur inconnue')
-                    # Si c'est un problème d'opérateur, afficher un message spécial
-                    if result.get('retry_possible'):
-                        messages.warning(request, error_message)
-                        # Rediriger vers la page de paiement pour permettre un nouvel essai
-                        return redirect('paiements_templates:payer_frais', frais_id=frais.id)
-                    else:
-                        messages.error(request, f"Erreur: {error_message}")
-                    
-        except ValueError as e:
-            # Erreur de configuration CinetPay
-            messages.error(request, f"Configuration manquante: {str(e)}")
-            logger.error(f"Erreur de configuration CinetPay: {str(e)}")
-        except Exception as e:
-            messages.error(request, f"Une erreur est survenue lors de l'initiation du paiement: {str(e)}")
-            logger.exception(f"Erreur lors de l'initiation du paiement {paiement.id}: {str(e)}")
+            notify_path = reverse('paiements:webhook_cinetpay')
+            notify_url = f"{site_url}{notify_path}"
+        except Exception:
+            notify_url = f"{site_url}/api/paiements/webhook/cinetpay/"
+        
+        cinetpay_config = {
+            'apikey': api_key,
+            'site_id': site_id,
+            'notify_url': notify_url,
+            'mode': getattr(settings, 'CINETPAY_ENV', 'test')
+        }
+        
+        # Montant: pour CDF pas de décimales, pour USD 2 décimales
+        amount_float = float(paiement.montant)
+        if paiement.devise == 'CDF':
+            amount_float = int(amount_float)
+        
+        description = f"Paiement {frais.nom_frais} - {frais.etablissement.nom}"
+        
+        context = {
+            'frais': frais,
+            'etudiant': etudiant,
+            'paiement': paiement,
+            'cinetpay_config': cinetpay_config,
+            'checkout_transaction_id': transaction_id,
+            'checkout_amount': amount_float,
+            'checkout_currency': paiement.devise,
+            'checkout_description': description,
+            'customer_name': customer_name,
+            'customer_surname': customer_surname,
+            'customer_email': customer_email,
+            'customer_phone_number': customer_phone_number,
+            'customer_address': request.POST.get('customer_address', '') or 'N/A',
+            'customer_city': request.POST.get('customer_city', '') or 'Kinshasa',
+            'customer_country': request.POST.get('customer_country', '') or 'CD',
+            'customer_state': request.POST.get('customer_state', '') or 'CD',
+            'customer_zip_code': request.POST.get('customer_zip_code', '') or '00000',
+            'has_operator_error': False
+        }
+        return render(request, 'paiements/payer.html', context)
     
-    # Récupérer les messages d'erreur pour les afficher dans le template
-    error_messages = messages.get_messages(request)
-    has_operator_error = any('opérateur' in str(msg).lower() or 'operator' in str(msg).lower() for msg in error_messages)
+    # GET: afficher le formulaire coordonnées
+    error_messages = list(messages.get_messages(request))
+    has_operator_error = any('opérateur' in str(m).lower() or 'operator' in str(m).lower() for m in error_messages)
     
     return render(request, 'paiements/payer.html', {
         'frais': frais,
+        'etudiant': etudiant,
         'has_operator_error': has_operator_error
     })
 

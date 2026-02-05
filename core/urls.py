@@ -18,5 +18,6 @@ urlpatterns = [
     path('login/', views_templates.login_view, name='login'),
     path('logout/', views_templates.logout_view, name='logout'),
     path('profile/', views_templates.profile_view, name='profile'),
+    path('change-password/', views_templates.change_password_view, name='change_password'),
 ]
 

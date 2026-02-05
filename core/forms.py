@@ -64,6 +64,70 @@ class UserLoginForm(forms.Form):
     )
 
 
+class PasswordChangeForm(forms.Form):
+    """Formulaire de changement de mot de passe"""
+    old_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Entrez votre mot de passe actuel'
+        }),
+        label='Mot de passe actuel',
+        required=True
+    )
+    new_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Entrez votre nouveau mot de passe'
+        }),
+        label='Nouveau mot de passe',
+        required=True,
+        validators=[validate_password],
+        help_text='Le mot de passe doit contenir au moins 8 caractères.'
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmez votre nouveau mot de passe'
+        }),
+        label='Confirmer le nouveau mot de passe',
+        required=True
+    )
+    
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+    
+    def clean_old_password(self):
+        """Vérifie que l'ancien mot de passe est correct"""
+        old_password = self.cleaned_data.get('old_password')
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError("Le mot de passe actuel est incorrect.")
+        return old_password
+    
+    def clean(self):
+        """Vérifie que les nouveaux mots de passe correspondent"""
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        new_password2 = cleaned_data.get('new_password2')
+        
+        if new_password and new_password2:
+            if new_password != new_password2:
+                raise forms.ValidationError("Les nouveaux mots de passe ne correspondent pas.")
+            
+            # Vérifier que le nouveau mot de passe est différent de l'ancien
+            if self.user.check_password(new_password):
+                raise forms.ValidationError("Le nouveau mot de passe doit être différent de l'ancien.")
+        
+        return cleaned_data
+    
+    def save(self):
+        """Sauvegarde le nouveau mot de passe"""
+        password = self.cleaned_data['new_password']
+        self.user.set_password(password)
+        self.user.save()
+        return self.user
+
+
 
 
 

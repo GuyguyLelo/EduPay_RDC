@@ -2,12 +2,12 @@
 Vues pour les templates (non-API)
 """
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from .models import User, UserRole
-from .forms import UserRegistrationForm, UserLoginForm
+from .forms import UserRegistrationForm, UserLoginForm, PasswordChangeForm
 
 
 def home_view(request):
@@ -92,4 +92,24 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Vous avez été déconnecté avec succès.')
     return redirect('core_templates:login')
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def change_password_view(request):
+    """Vue de changement de mot de passe"""
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            # Mettre à jour la session pour éviter la déconnexion
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Votre mot de passe a été modifié avec succès !')
+            return redirect('core_templates:profile')
+        else:
+            messages.error(request, 'Veuillez corriger les erreurs ci-dessous.')
+    else:
+        form = PasswordChangeForm(request.user)
+    
+    return render(request, 'core/change_password.html', {'form': form})
 
