@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'EduPay_RDC.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME', default='edupay_rdc'),
@@ -90,9 +90,9 @@ DATABASES = {
         'PORT': config('DB_PORT', default='5432'),
     }
 }
-
+"""
 # Fallback to SQLite if PostgreSQL is not configured
-if config('USE_SQLITE', default=False, cast=bool):
+if config('USE_SQLITE', default=True, cast=bool):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

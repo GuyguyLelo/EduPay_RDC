@@ -16,7 +16,12 @@ def dashboard_etablissement(request):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Accès refusé")
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -75,7 +80,12 @@ def etudiants_list(request):
     
     logger = logging.getLogger(__name__)
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -125,7 +135,12 @@ def paiements_list(request):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Accès refusé")
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -154,7 +169,12 @@ def comptes_paiement_list(request):
     
     logger = logging.getLogger(__name__)
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -201,7 +221,12 @@ def etudiant_detail(request, etudiant_id):
     from etudiants.models import Etudiant
     from paiements.models import Paiement
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -232,7 +257,12 @@ def etudiant_edit(request, etudiant_id):
     import logging
     
     logger = logging.getLogger(__name__)
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -273,7 +303,12 @@ def paiement_detail(request, paiement_id):
     from django.shortcuts import get_object_or_404
     from paiements.models import Paiement
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -300,7 +335,12 @@ def compte_detail(request, compte_id):
     from django.shortcuts import get_object_or_404
     from .models import ComptePaiement
     
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
@@ -327,7 +367,12 @@ def compte_edit(request, compte_id):
     import logging
     
     logger = logging.getLogger(__name__)
-    etablissement = request.user.etablissement_admin
+    try:
+        etablissement = request.user.etablissement_admin
+    except Etablissement.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Aucun établissement associé à votre compte. Veuillez contacter l'administrateur.")
+    
     if not etablissement:
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden("Aucun établissement associé")
