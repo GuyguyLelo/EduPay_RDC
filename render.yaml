@@ -16,6 +16,8 @@ services:
         value: "false"
       - key: SECRET_KEY
         generateValue: true
+      - key: USE_SQLITE
+        value: "true"
       - key: DB_NAME
         value: edupay_rdc
       - key: DB_USER
@@ -38,6 +40,8 @@ services:
         sync: false
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1,testserver,edupay-rdc-p9tw.onrender.com,edupay-rdc.onrender.com,onrender.com,.onrender.com"
 
 databases:
   - name: edupay-rdc-db

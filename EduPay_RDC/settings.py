@@ -90,37 +90,30 @@ WSGI_APPLICATION = 'EduPay_RDC.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Priorité à SQLite sur Render pour éviter les erreurs de connexion PostgreSQL
-if config('USE_SQLITE', default=False, cast=bool):
+# Forcer SQLite temporairement pour éviter les erreurs PostgreSQL
+USE_SQLITE = os.environ.get('USE_SQLITE', 'true').lower() == 'true'
+
+if USE_SQLITE:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+    print("🗄️ Utilisation de SQLite (temporaire)")
 else:
-    # Configuration PostgreSQL avec fallback
-    try:
-        # Essayer de configurer PostgreSQL avec les variables Render
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': config('RENDER_DB_NAME', config('DB_NAME', default='edupay_rdc')),
-                'USER': config('RENDER_DB_USER', config('DB_USER', default='postgres')),
-                'PASSWORD': config('RENDER_DB_PASSWORD', config('DB_PASSWORD', default='')),
-                'HOST': config('RENDER_DB_HOST', config('DB_HOST', default='localhost')),
-                'PORT': config('RENDER_DB_PORT', config('DB_PORT', default='5432')),
-            }
+    # Configuration PostgreSQL pour Render
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='edupay_rdc'),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
         }
-    except Exception as e:
-        print(f"Erreur configuration PostgreSQL: {e}")
-        print("Fallback vers SQLite...")
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    }
+    print("🗄️ Utilisation de PostgreSQL")
 
 
 # Custom User Model
