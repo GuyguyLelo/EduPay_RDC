@@ -33,6 +33,18 @@ render_host = config('RENDER_EXTERNAL_HOSTNAME', default='')
 if render_host and render_host not in default_hosts:
     default_hosts.append(render_host)
 
+# Ajouter le domaine depuis RENDER_EXTERNAL_URL
+render_url = config('RENDER_EXTERNAL_URL', default='')
+if render_url:
+    from urllib.parse import urlparse
+    parsed_url = urlparse(render_url)
+    if parsed_url.netloc and parsed_url.netloc not in default_hosts:
+        default_hosts.append(parsed_url.netloc)
+
+# Accepter tous les domaines .onrender.com pour éviter les problèmes
+if config('DEBUG', default=False, cast=bool):
+    default_hosts.append('*')
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=','.join(default_hosts), cast=lambda v: [s.strip() for s in v.split(',')])
 
 
