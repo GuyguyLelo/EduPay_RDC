@@ -1,0 +1,86 @@
+services:
+  # Service Web Django
+  - type: web
+    name: edupay-rdc
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn EduPay_RDC.wsgi:application --workers 3 --bind 0.0.0.0:$PORT"
+    healthCheckPath: /admin/
+    healthCheckTimeout: 100
+    autoDeploy: true
+    
+    # Variables d'environnement
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: DJANGO_SETTINGS_MODULE
+        value: EduPay_RDC.settings
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_NAME
+        value: edupay_rdc
+      - key: DB_USER
+        value: postgres
+      - key: DB_HOST
+        value: localhost
+      - key: DB_PORT
+        value: 5432
+      - key: SITE_URL
+        sync: false
+      - key: CINETPAY_API_KEY
+        sync: false
+      - key: CINETPAY_SITE_ID
+        sync: false
+      - key: CINETPAY_ENV
+        value: prod
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+    
+    # Base de données PostgreSQL
+    databases:
+      - name: edupay_rdc
+        databaseName: edupay_rdc
+        user: edupay_user
+    
+    # Stockage pour les fichiers médias
+    disk:
+      name: edupay-media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 10
+
+# Configuration Redis pour les sessions et Celery (optionnel)
+databases:
+  - name: redis
+    databaseName: edupay_redis
+    user: edupay_redis
+
+# Configuration des variables d'environnement sensibles
+environmentGroups:
+  - name: Database Credentials
+    envVars:
+      - DB_PASSWORD
+      - RENDER_DB_HOST
+      - RENDER_DB_USER
+      - RENDER_DB_PASSWORD
+      - RENDER_DB_NAME
+      - RENDER_DB_PORT
+  
+  - name: Application Settings
+    envVars:
+      - SECRET_KEY
+      - SITE_URL
+      - ALLOWED_HOSTS
+      - CINETPAY_API_KEY
+      - CINETPAY_SITE_ID
+  
+  - name: Admin Account
+    envVars:
+      - DJANGO_SUPERUSER_USERNAME
+      - DJANGO_SUPERUSER_EMAIL
+      - DJANGO_SUPERUSER_PASSWORD
