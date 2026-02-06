@@ -14,14 +14,24 @@ export DJANGO_SETTINGS_MODULE=EduPay_RDC.settings
 # Vérifier que nous sommes dans le bon répertoire
 cd /opt/render/project/src
 
-echo "📦 Installation des dépendances..."
-pip install -r requirements.txt
-
-echo "🔧 Installation de psycopg2-binary pour Python 3.11..."
-pip install psycopg2-binary==2.9.9
+# Forcer Python 3.11 si disponible
+if command -v python3.11 &> /dev/null; then
+    echo "🐍 Utilisation de Python 3.11"
+    export PATH="/opt/render/project/src/.venv/bin:$PATH"
+    python3.11 -m pip install --upgrade pip
+    python3.11 -m pip install -r requirements.txt
+    python3.11 -m pip install psycopg2-binary==2.9.9
+    PYTHON_CMD="python3.11"
+else
+    echo "🐍 Utilisation de Python par défaut"
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    pip install psycopg2-binary==2.9.9
+    PYTHON_CMD="python"
+fi
 
 echo "🗄️ Migration de la base de données PostgreSQL..."
-python manage.py migrate --noinput
+$PYTHON_CMD manage.py migrate --noinput
 
 echo "📁 Création des répertoires nécessaires..."
 mkdir -p media/uploads
@@ -29,10 +39,10 @@ mkdir -p staticfiles
 mkdir -p logs
 
 echo "🎨 Collecte des fichiers statiques..."
-python manage.py collectstatic --noinput --clear
+$PYTHON_CMD manage.py collectstatic --noinput --clear
 
 echo "🔧 Création du superutilisateur si nécessaire..."
-python -c "
+$PYTHON_CMD -c "
 from django.contrib.auth import get_user_model
 from django.db import transaction
 import os
@@ -58,7 +68,7 @@ else:
 "
 
 echo "📊 Vérification de la base de données..."
-python manage.py check --deploy
+$PYTHON_CMD manage.py check --deploy
 
 echo "🔧 Configuration des permissions..."
 chmod -R 755 media/
@@ -69,6 +79,6 @@ echo "🌐 L'application est prête à démarrer sur Render..."
 
 # Script de santé pour Render
 echo "🏥 Vérification de santé..."
-python manage.py check || exit 1
+$PYTHON_CMD manage.py check || exit 1
 
 echo "🎉 Déploiement prêt!"
