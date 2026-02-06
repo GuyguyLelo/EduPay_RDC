@@ -66,7 +66,7 @@ def payer_frais(request, frais_id):
                 'has_operator_error': False
             })
         
-        # Créer le paiement
+        # Créer le paiement sans l'initialiser immédiatement avec CinetPay
         paiement = Paiement.objects.create(
             etudiant=etudiant,
             frais=frais,
@@ -79,11 +79,27 @@ def payer_frais(request, frais_id):
             email_paiement=customer_email or None
         )
         
-        # ID de transaction unique pour CinetPay (et pour le webhook)
-        transaction_id = f"EDUPAY_{paiement.id}_{int(time.time())}"
+        # ID de transaction unique pour CinetPay (et pour le webhook) - format plus simple
+        transaction_id = str(paiement.id)  # Utiliser juste l'ID du paiement
         paiement.transaction_id = transaction_id
         paiement.reference_flutterwave = transaction_id
         paiement.save()
+        
+        # Valider uniquement la configuration CinetPay sans créer de paiement
+        try:
+            from .services_cinetpay import CinetPayService
+            service = CinetPayService()
+            # Juste valider que le service fonctionne, pas créer de paiement
+            logger.info("Service CinetPay initialisé avec succès")
+            
+        except Exception as e:
+            logger.error(f"Erreur d'initialisation CinetPay: {e}")
+            messages.error(request, f"Erreur de configuration du paiement: {str(e)}")
+            return render(request, 'paiements/payer.html', {
+                'frais': frais,
+                'etudiant': etudiant,
+                'has_operator_error': False
+            })
         
         # URL de notification pour le webhook
         site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
@@ -104,6 +120,12 @@ def payer_frais(request, frais_id):
         amount_float = float(paiement.montant)
         if paiement.devise == 'CDF':
             amount_float = int(amount_float)
+        elif paiement.devise == 'USD':
+            # S'assurer que USD a 2 décimales et utilise un point comme séparateur
+            amount_float = round(amount_float, 2)
+        
+        # Forcer le format avec point décimal pour éviter les problèmes de localisation
+        amount_str = str(amount_float).replace(',', '.')
         
         description = f"Paiement {frais.nom_frais} - {frais.etablissement.nom}"
         
@@ -112,8 +134,8 @@ def payer_frais(request, frais_id):
             'etudiant': etudiant,
             'paiement': paiement,
             'cinetpay_config': cinetpay_config,
-            'checkout_transaction_id': transaction_id,
-            'checkout_amount': amount_float,
+            'checkout_transaction_id': transaction_id,  # Utiliser la variable définie plus haut
+            'checkout_amount': amount_str,  # Utiliser la chaîne avec point décimal
             'checkout_currency': paiement.devise,
             'checkout_description': description,
             'customer_name': customer_name,

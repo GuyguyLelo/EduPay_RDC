@@ -17,7 +17,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-^x&feyt3bvm&#+bouop!*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -209,7 +209,7 @@ CORS_ALLOW_CREDENTIALS = True
 # CinetPay (recommandé pour la RDC)
 CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='')
 CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='')
-CINETPAY_ENV = config('CINETPAY_ENV', default='test')  # test or prod
+CINETPAY_ENV = config('CINETPAY_ENV', default='test', cast=str) or 'prod'
 
 # CinetPay SMS Configuration (pour les confirmations par SMS)
 CINETPAY_SMS_API_KEY = config('CINETPAY_SMS_API_KEY', default='')

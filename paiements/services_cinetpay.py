@@ -162,6 +162,15 @@ class CinetPayService:
                 'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
                 'customer_phone_number': numero_telephone,  # Numéro de téléphone pour Mobile Money
                 'customer_email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else '',
+                # Champs supplémentaires requis par CinetPay
+                'customer_address': 'Kinshasa, RDC',
+                'customer_city': 'Kinshasa',
+                'customer_country': 'CD',
+                'customer_state': 'Kinshasa',
+                'customer_zip_code': '00000',
+                # Champs spécifiques pour le mode Seamless
+                'channels': 'ALL',
+                'lang': 'fr'
             }
             
             # Note: Certaines versions de l'API CinetPay peuvent nécessiter des paramètres supplémentaires
@@ -308,6 +317,16 @@ class CinetPayService:
                 'cancel_url': self._get_cancel_url(paiement.id),
                 'customer_name': paiement.etudiant.nom_complet.split()[0] if paiement.etudiant.nom_complet else paiement.etudiant.prenom,
                 'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
+                'customer_email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else '',
+                # Champs supplémentaires requis par CinetPay
+                'customer_address': 'Kinshasa, RDC',
+                'customer_city': 'Kinshasa',
+                'customer_country': 'CD',
+                'customer_state': 'Kinshasa',
+                'customer_zip_code': '00000',
+                # Champs spécifiques pour le mode Seamless
+                'channels': 'ALL',
+                'lang': 'fr'
             }
             
             response = self.client.PaymentInitialization(data)

@@ -141,10 +141,20 @@
             mode: config.mode
         });
 
-        CinetPay.getCheckout({
+        // Ajouter un log pour debugging
+        console.log('Configuration CinetPay:', config);
+        console.log('Données de paiement:', {
             transaction_id: transactionId,
             amount: amount,
             currency: currency,
+            description: description,
+            customer: customer
+        });
+
+        CinetPay.getCheckout({
+            transaction_id: transactionId,
+            amount: amount,
+            currency: currency,  // Garder CDF (compatible avec votre compte)
             channels: 'ALL',
             description: description,
             customer_name: customer.name,
@@ -153,9 +163,24 @@
             customer_phone_number: customer.phone,
             customer_address: customer.address,
             customer_city: customer.city,
-            customer_country: customer.country,
+            customer_country: 'CI',  // Côte d'Ivoire - mieux supporté par CinetPay en test
             customer_state: customer.state,
-            customer_zip_code: customer.zip_code
+            customer_zip_code: customer.zip_code,
+            // Champs supplémentaires pour éviter MINIMUM_REQUIRED_FIELDS
+            lang: 'fr',
+            // Utiliser les URLs correctes pour le mode Seamless
+            return_url: successUrlFull,
+            notify_url: config.notify_url,
+            cancel_url: successUrlFull.replace('/success/', '/cancel/')
+        });
+        
+        console.log('Données envoyées à CinetPay:', {
+            transaction_id: transactionId,
+            amount: amount,
+            currency: currency,
+            description: description,
+            customer: customer,
+            config: config
         });
 
         CinetPay.waitResponse(function(data) {
@@ -171,8 +196,26 @@
         CinetPay.onError(function(data) {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-credit-card"></i> Payer {{ paiement.montant }} {{ paiement.devise }} avec CinetPay';
-            console.error('CinetPay error:', data);
-            alert('Une erreur est survenue. Veuillez réessayer.');
+            console.error('Erreur CinetPay détaillée:', data);
+            
+            // Afficher un message d'erreur plus détaillé
+            let errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+            if (data && data.message) {
+                errorMessage = 'Erreur: ' + data.message + '. Veuillez réessayer.';
+            } else if (data && data.error) {
+                errorMessage = 'Erreur: ' + data.error + '. Veuillez réessayer.';
+            } else if (data && data.code) {
+                errorMessage = 'Erreur code ' + data.code + '. Veuillez réessayer.';
+            }
+            
+            console.log('Message d\'erreur final:', errorMessage);
+            alert(errorMessage);
+            
+            // Ajouter un message d'erreur visible sur la page
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger mt-3';
+            errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + errorMessage;
+            btn.parentNode.appendChild(errorDiv);
         });
     });
 })();
