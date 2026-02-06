@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # EduPay RDC - Build Script for Render
-# Ce script gère le déploiement sur Render avec migrations PostgreSQL
+# Ce script gère le déploiement sur Render avec fallback SQLite
 
 set -e  # Arrêter le script en cas d'erreur
 
@@ -30,25 +30,15 @@ else
     PYTHON_CMD="python"
 fi
 
-# Configuration de la base de données Render
-echo "🔧 Configuration de la base de données Render..."
-# Utiliser les variables d'environnement Render pour la base de données
-export DATABASE_URL="postgresql://${RENDER_DB_USER}:${RENDER_DB_PASSWORD}@${RENDER_DB_HOST}:${RENDER_DB_PORT}/${RENDER_DB_NAME}"
+# Activer temporairement SQLite pour éviter les erreurs PostgreSQL
+echo "🗄️ Activation temporaire de SQLite pour le déploiement..."
+export USE_SQLITE=True
 
-# Mettre à jour les variables Django pour Render
-export DB_NAME="$RENDER_DB_NAME"
-export DB_USER="$RENDER_DB_USER"
-export DB_PASSWORD="$RENDER_DB_PASSWORD"
-export DB_HOST="$RENDER_DB_HOST"
-export DB_PORT="$RENDER_DB_PORT"
+echo "📊 Configuration de la base de données..."
+echo "  Mode: SQLite (temporaire)"
+echo "  Python: $($PYTHON_CMD --version)"
 
-echo "📊 Configuration DB:"
-echo "  DB_NAME: $DB_NAME"
-echo "  DB_USER: $DB_USER"
-echo "  DB_HOST: $DB_HOST"
-echo "  DB_PORT: $DB_PORT"
-
-echo "🗄️ Migration de la base de données PostgreSQL..."
+echo "🗄️ Migration de la base de données..."
 $PYTHON_CMD manage.py migrate --noinput
 
 echo "📁 Création des répertoires nécessaires..."
@@ -94,6 +84,7 @@ chmod -R 755 staticfiles/
 
 echo "✅ Build terminé avec succès!"
 echo "🌐 L'application est prête à démarrer sur Render..."
+echo "💡 Note: Utilisation temporaire de SQLite. Configurez PostgreSQL manuellement plus tard."
 
 # Script de santé pour Render
 echo "🏥 Vérification de santé..."

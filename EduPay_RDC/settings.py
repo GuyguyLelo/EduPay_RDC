@@ -80,28 +80,37 @@ WSGI_APPLICATION = 'EduPay_RDC.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
-    }
-}
-
-"""
-# Fallback to SQLite if PostgreSQL is not configured
-if config('USE_SQLITE', default=True, cast=bool):
+# Priorité à SQLite sur Render pour éviter les erreurs de connexion PostgreSQL
+if config('USE_SQLITE', default=False, cast=bool):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-"""
+else:
+    # Configuration PostgreSQL avec fallback
+    try:
+        # Essayer de configurer PostgreSQL avec les variables Render
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('RENDER_DB_NAME', config('DB_NAME', default='edupay_rdc')),
+                'USER': config('RENDER_DB_USER', config('DB_USER', default='postgres')),
+                'PASSWORD': config('RENDER_DB_PASSWORD', config('DB_PASSWORD', default='')),
+                'HOST': config('RENDER_DB_HOST', config('DB_HOST', default='localhost')),
+                'PORT': config('RENDER_DB_PORT', config('DB_PORT', default='5432')),
+            }
+        }
+    except Exception as e:
+        print(f"Erreur configuration PostgreSQL: {e}")
+        print("Fallback vers SQLite...")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Custom User Model
