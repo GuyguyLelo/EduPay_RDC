@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Rapide - EduPay RDC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Configuration Rapide EduPay RDC</h1>
+        
+        <div class="info">
+            <strong>Installation Automatique</strong><br>
+            Cette configuration va créer :<br>
+            1. Un compte superadministrateur<br>
+            2. Un établissement par défaut<br>
+            3. L'association entre les deux
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="step">
+                <h3>👤 Étape 1: Compte Administrateur</h3>
+                
+                <div class="form-group">
+                    <label for="email">Email Administrateur *</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="admin@edupay-rdc.com" 
+                           value="admin@edupay-rdc.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Minimum 8 caractères" 
+                           value="Admin123456!">
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>🏫 Étape 2: Établissement par Défaut</h3>
+                
+                <div class="form-group">
+                    <label for="nom_etablissement">Nom de l'établissement *</label>
+                    <input type="text" id="nom_etablissement" name="nom_etablissement" required 
+                           placeholder="Ex: École Primaire EduPay" 
+                           value="École Primaire EduPay">
+                </div>
+            </div>
+
+            <button type="submit" class="btn">
+                🚀 Lancer la Configuration Automatique
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{% url 'core_templates:login' %}" style="color: #667eea; text-decoration: none;">
+                ← Retour à la connexion
+            </a>
+        </div>
+    </div>
+</body>
+</html>

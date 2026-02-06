@@ -11,6 +11,9 @@ urlpatterns = [
     path('', login_view, name='home'),
     path('admin/', admin.site.urls),
     
+    # URLs de configuration temporaire pour Render
+    path('setup-admin/', include(('core.urls_admin', 'core'), namespace='admin_setup')),
+    
     # Template URLs
     path('auth/', include(('core.urls', 'core'), namespace='core_templates')),
     path('dashboard/', include(('dashboard_admin.urls', 'dashboard_admin'), namespace='dashboard_admin_templates')),
