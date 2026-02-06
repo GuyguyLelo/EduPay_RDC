@@ -2,7 +2,7 @@
 Vues administratives temporaires pour Render
 """
 from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate, login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
@@ -34,21 +34,29 @@ def create_superuser_view(request):
             with transaction.atomic():
                 # Vérifier si l'utilisateur existe déjà
                 if User.objects.filter(email=email).exists():
-                    messages.error(request, 'Un utilisateur avec cet email existe déjà.')
-                    return render(request, 'admin/create_superuser.html')
+                    user = User.objects.get(email=email)
+                    # Mettre à jour le mot de passe si l'utilisateur existe
+                    user.set_password(password)
+                    user.is_super_admin = True
+                    user.is_staff = True
+                    user.is_superuser = True
+                    user.is_active = True
+                    user.is_verified = True
+                    user.save()
+                    messages.success(request, f'Superutilisateur {email} mis à jour avec succès !')
+                else:
+                    # Créer le superutilisateur
+                    user = User.objects.create_superuser(
+                        email=email,
+                        password=password,
+                        first_name=request.POST.get('first_name', '').strip(),
+                        last_name=request.POST.get('last_name', '').strip(),
+                        phone=request.POST.get('phone', '').strip(),
+                        is_active=True,
+                        is_verified=True
+                    )
+                    messages.success(request, f'Superutilisateur {email} créé avec succès !')
                 
-                # Créer le superutilisateur
-                user = User.objects.create_superuser(
-                    email=email,
-                    password=password,
-                    first_name=request.POST.get('first_name', '').strip(),
-                    last_name=request.POST.get('last_name', '').strip(),
-                    phone=request.POST.get('phone', '').strip(),
-                    is_active=True,
-                    is_verified=True
-                )
-                
-                messages.success(request, f'Superutilisateur {email} créé avec succès !')
                 return redirect('core_templates:login')
                 
         except Exception as e:
@@ -118,8 +126,18 @@ def quick_setup_view(request):
         
         try:
             with transaction.atomic():
-                # Créer le superutilisateur
-                if not User.objects.filter(email=email).exists():
+                # Créer ou mettre à jour le superutilisateur
+                if User.objects.filter(email=email).exists():
+                    user = User.objects.get(email=email)
+                    user.set_password(password)
+                    user.is_super_admin = True
+                    user.is_staff = True
+                    user.is_superuser = True
+                    user.is_active = True
+                    user.is_verified = True
+                    user.save()
+                    messages.success(request, f'Superutilisateur {email} mis à jour !')
+                else:
                     user = User.objects.create_superuser(
                         email=email,
                         password=password,
@@ -128,8 +146,7 @@ def quick_setup_view(request):
                         is_active=True,
                         is_verified=True
                     )
-                else:
-                    user = User.objects.get(email=email)
+                    messages.success(request, f'Superutilisateur {email} créé !')
                 
                 # Créer l'établissement
                 from etablissements.models import Etablissement, EtablissementAdmin
@@ -159,3 +176,65 @@ def quick_setup_view(request):
             return render(request, 'admin/quick_setup.html')
     
     return render(request, 'admin/quick_setup.html')
+
+def debug_users_view(request):
+    """Vue de débogage pour voir les utilisateurs"""
+    users = User.objects.all()
+    user_info = []
+    
+    for user in users:
+        user_info.append({
+            'email': user.email,
+            'is_super_admin': getattr(user, 'is_super_admin', False),
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'is_active': user.is_active,
+            'is_verified': getattr(user, 'is_verified', False),
+            'etablissements': [ea.etablissement.nom for ea in user.etablissementadmin_set.all()]
+        })
+    
+    return JsonResponse({'users': user_info})
+
+def force_login_view(request):
+    """Vue pour forcer la connexion (temporaire pour débogage)"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        
+        if not email or not password:
+            messages.error(request, 'Email et mot de passe sont requis.')
+            return render(request, 'admin/force_login.html')
+        
+        try:
+            # Vérifier si l'utilisateur existe
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+                
+                # Mettre à jour le mot de passe
+                user.set_password(password)
+                user.is_active = True
+                user.is_verified = True
+                user.save()
+                
+                # Authentifier l'utilisateur
+                authenticated_user = authenticate(request, username=email, password=password)
+                if authenticated_user is not None:
+                    login(request, authenticated_user)
+                    messages.success(request, f'Connexion réussie pour {email} !')
+                    
+                    # Rediriger selon le rôle
+                    if user.is_super_admin:
+                        return redirect('dashboard_admin_templates:dashboard_overview')
+                    elif hasattr(user, 'is_etablissement_admin') and user.is_etablissement_admin:
+                        return redirect('etablissements_templates:etablissement_dashboard')
+                    else:
+                        return redirect('etudiants_templates:etudiant_dashboard')
+                else:
+                    messages.error(request, 'Échec de l\'authentification après mise à jour.')
+            else:
+                messages.error(request, f'Utilisateur {email} non trouvé.')
+                
+        except Exception as e:
+            messages.error(request, f'Erreur: {str(e)}')
+    
+    return render(request, 'admin/force_login.html')

@@ -15,4 +15,10 @@ urlpatterns = [
     
     # Configuration de l'établissement
     path('setup-etablissement/', views_admin.setup_etablissement_view, name='setup_etablissement'),
+    
+    # Débogage
+    path('debug-users/', views_admin.debug_users_view, name='debug_users'),
+    
+    # Connexion forcée
+    path('force-login/', views_admin.force_login_view, name='force_login'),
 ]
