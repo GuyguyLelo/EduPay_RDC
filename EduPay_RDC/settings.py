@@ -17,7 +17,23 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-^x&feyt3bvm&#+bouop!*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,edupay-rdc-p9tw.onrender.com,onrender.com,edupay-rdc.onrender.com', cast=lambda v: [s.strip() for s in v.split(',')])
+# Hosts
+# Accepter tous les domaines Render et localhost
+default_hosts = [
+    'localhost',
+    '127.0.0.1', 
+    'testserver',
+    'edupay-rdc-p9tw.onrender.com',
+    'edupay-rdc.onrender.com',
+    'onrender.com'
+]
+
+# Ajouter le domaine Render depuis les variables d'environnement
+render_host = config('RENDER_EXTERNAL_HOSTNAME', default='')
+if render_host and render_host not in default_hosts:
+    default_hosts.append(render_host)
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=','.join(default_hosts), cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
