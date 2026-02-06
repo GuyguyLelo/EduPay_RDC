@@ -30,6 +30,24 @@ else
     PYTHON_CMD="python"
 fi
 
+# Configuration de la base de données Render
+echo "🔧 Configuration de la base de données Render..."
+# Utiliser les variables d'environnement Render pour la base de données
+export DATABASE_URL="postgresql://${RENDER_DB_USER}:${RENDER_DB_PASSWORD}@${RENDER_DB_HOST}:${RENDER_DB_PORT}/${RENDER_DB_NAME}"
+
+# Mettre à jour les variables Django pour Render
+export DB_NAME="$RENDER_DB_NAME"
+export DB_USER="$RENDER_DB_USER"
+export DB_PASSWORD="$RENDER_DB_PASSWORD"
+export DB_HOST="$RENDER_DB_HOST"
+export DB_PORT="$RENDER_DB_PORT"
+
+echo "📊 Configuration DB:"
+echo "  DB_NAME: $DB_NAME"
+echo "  DB_USER: $DB_USER"
+echo "  DB_HOST: $DB_HOST"
+echo "  DB_PORT: $DB_PORT"
+
 echo "🗄️ Migration de la base de données PostgreSQL..."
 $PYTHON_CMD manage.py migrate --noinput
 
