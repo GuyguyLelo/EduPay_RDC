@@ -65,18 +65,30 @@ def login_view(request):
 def register_view(request):
     """Vue d'inscription"""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('core_templates:dashboard')
     
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             messages.success(request, 'Inscription réussie ! Vous pouvez maintenant vous connecter.')
-            return redirect('login')
+            return redirect('core_templates:login')
     else:
         form = UserRegistrationForm()
     
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required
+def dashboard_view(request):
+    """Vue du tableau de bord principal"""
+    # Rediriger selon le rôle de l'utilisateur
+    if request.user.is_super_admin:
+        return redirect('dashboard_admin_templates:dashboard_overview')
+    elif request.user.is_etablissement_admin:
+        return redirect('etablissements_templates:etablissement_dashboard')
+    else:
+        return redirect('etudiants_templates:etudiant_dashboard')
 
 
 @login_required
