@@ -18,34 +18,21 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-^x&feyt3bvm&#+bouop!*
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Hosts
-# Accepter tous les domaines Render et localhost
-default_hosts = [
-    'localhost',
-    '127.0.0.1', 
-    'testserver',
-    'edupay-rdc-p9tw.onrender.com',
-    'edupay-rdc.onrender.com',
-    'onrender.com'
-]
-
-# Ajouter le domaine Render depuis les variables d'environnement
-render_host = config('RENDER_EXTERNAL_HOSTNAME', default='')
-if render_host and render_host not in default_hosts:
-    default_hosts.append(render_host)
-
-# Ajouter le domaine depuis RENDER_EXTERNAL_URL
-render_url = config('RENDER_EXTERNAL_URL', default='')
-if render_url:
-    from urllib.parse import urlparse
-    parsed_url = urlparse(render_url)
-    if parsed_url.netloc and parsed_url.netloc not in default_hosts:
-        default_hosts.append(parsed_url.netloc)
-
-# Accepter tous les domaines .onrender.com pour éviter les problèmes
+# Solution simple et robuste pour Render
 if config('DEBUG', default=False, cast=bool):
-    default_hosts.append('*')
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=','.join(default_hosts), cast=lambda v: [s.strip() for s in v.split(',')])
+    # En production, accepter tous les domaines Render et localhost
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        'testserver',
+        'edupay-rdc-p9tw.onrender.com',
+        'edupay-rdc.onrender.com',
+        'onrender.com',
+        '.onrender.com',  # Accepte tous les sous-domaines
+    ]
+else:
+    # En développement, localhost uniquement
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
