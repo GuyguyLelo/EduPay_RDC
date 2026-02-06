@@ -11,6 +11,65 @@ import os
 
 User = get_user_model()
 
+def create_master_superuser_view(request):
+    """Vue pour créer un superutilisateur principal non associé à un établissement"""
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+        
+        if not email or not password:
+            messages.error(request, 'Email et mot de passe sont requis.')
+            return render(request, 'admin/create_master_superuser.html')
+        
+        if password != confirm_password:
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
+            return render(request, 'admin/create_master_superuser.html')
+        
+        if len(password) < 8:
+            messages.error(request, 'Le mot de passe doit contenir au moins 8 caractères.')
+            return render(request, 'admin/create_master_superuser.html')
+        
+        try:
+            with transaction.atomic():
+                # Vérifier si l'utilisateur existe déjà
+                if User.objects.filter(email=email).exists():
+                    user = User.objects.get(email=email)
+                    # Mettre à jour le mot de passe et les permissions
+                    user.set_password(password)
+                    user.is_super_admin = True
+                    user.is_staff = True
+                    user.is_superuser = True
+                    user.is_active = True
+                    user.is_verified = True
+                    # S'assurer qu'il n'est pas admin d'établissement
+                    user.is_etablissement_admin = False
+                    user.save()
+                    messages.success(request, f'Superutilisateur principal {email} mis à jour avec succès !')
+                else:
+                    # Créer le superutilisateur principal
+                    user = User.objects.create_superuser(
+                        email=email,
+                        password=password,
+                        first_name=request.POST.get('first_name', '').strip(),
+                        last_name=request.POST.get('last_name', '').strip(),
+                        phone=request.POST.get('phone', '').strip(),
+                        is_active=True,
+                        is_verified=True
+                    )
+                    # S'assurer qu'il n'est pas admin d'établissement
+                    user.is_etablissement_admin = False
+                    user.save()
+                    messages.success(request, f'Superutilisateur principal {email} créé avec succès !')
+                
+                return redirect('core_templates:login')
+                
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la création: {str(e)}')
+            return render(request, 'admin/create_master_superuser.html')
+    
+    return render(request, 'admin/create_master_superuser.html')
+
 def create_superuser_view(request):
     """Vue temporaire pour créer un superutilisateur sur Render"""
     if request.method == 'POST':

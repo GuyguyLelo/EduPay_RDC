@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer Superutilisateur Principal - EduPay RDC</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .privilege {
+            background: #d1ecf1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+        .privilege h4 {
+            margin: 0 0 10px 0;
+            color: #0c5460;
+        }
+        .privilege ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .privilege li {
+            margin-bottom: 5px;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👑 Créer Superutilisateur Principal</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Superutilisateur Principal</strong><br>
+            Ce compte aura accès à TOUS les établissements sans être associé à un établissement spécifique.<br>
+            Il pourra créer et gérer les administrateurs de chaque établissement.
+        </div>
+
+        <div class="privilege">
+            <h4>🎯 Privilèges du Superutilisateur Principal</h4>
+            <ul>
+                <li>✅ Accès à tous les établissements</li>
+                <li>✅ Création d'établissements</li>
+                <li>✅ Création d'admins d'établissements</li>
+                <li>✅ Gestion des utilisateurs globaux</li>
+                <li>✅ Accès à tous les tableaux de bord</li>
+                <li>✅ Configuration de la plateforme</li>
+                <li>❌ Non associé à un établissement spécifique</li>
+            </ul>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="email">Email du Superutilisateur Principal *</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="superadmin@edupay-rdc.com" 
+                       value="superadmin@edupay-rdc.com">
+            </div>
+
+            <div class="form-group">
+                <label for="first_name">Prénom</label>
+                <input type="text" id="first_name" name="first_name" 
+                       placeholder="Super" 
+                       value="Super">
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Nom</label>
+                <input type="text" id="last_name" name="last_name" 
+                       placeholder="Administrateur" 
+                       value="Administrateur">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Téléphone</label>
+                <input type="text" id="phone" name="phone" 
+                       placeholder="+243 000 000 000">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe *</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Minimum 8 caractères" 
+                       value="MasterAdmin123!">
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirmer Mot de passe *</label>
+                <input type="password" id="confirm_password" name="confirm_password" required 
+                       placeholder="Répétez le mot de passe" 
+                       value="MasterAdmin123!">
+            </div>
+
+            <button type="submit" class="btn">
+                👑 Créer le Superutilisateur Principal
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{% url 'admin_setup:create_superuser' %}" style="color: #667eea; text-decoration: none; margin-right: 10px;">
+                🏫 Créer Admin d'Établissement
+            </a>
+            <a href="{% url 'admin_setup:quick_setup' %}" style="color: #667eea; text-decoration: none; margin-right: 10px;">
+                ⚡ Configuration Rapide
+            </a>
+            <a href="{% url 'core_templates:login' %}" style="color: #667eea; text-decoration: none;">
+                ← Retour à la connexion
+            </a>
+        </div>
+    </div>
+</body>
+</html>

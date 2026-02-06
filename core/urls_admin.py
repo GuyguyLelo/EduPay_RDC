@@ -7,6 +7,9 @@ from . import views_admin
 app_name = 'admin_setup'
 
 urlpatterns = [
+    # Création du superutilisateur principal
+    path('create-master-superuser/', views_admin.create_master_superuser_view, name='create_master_superuser'),
+    
     # Configuration rapide
     path('quick-setup/', views_admin.quick_setup_view, name='quick_setup'),
     
