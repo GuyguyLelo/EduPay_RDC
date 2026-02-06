@@ -13,10 +13,11 @@ psycopg2-binary==2.9.9
 
 # Payment Gateway
 # Flutterwave (optionnel, peut être remplacé par CinetPay)
-rave-python==1.2.7
+# rave-python==1.2.7  # Non compatible Python 3.11
 
 # CinetPay SDK (passerelle de paiement pour l'Afrique)
-cinetpay-sdk==0.1.1
+# cinetpay-sdk==0.1.1  # Non disponible, on utilise requests directement
+requests==2.31.0
 
 # PDF Generation
 reportlab>=3.5.53,<4.0
