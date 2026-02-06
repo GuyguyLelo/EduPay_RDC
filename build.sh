@@ -50,7 +50,8 @@ echo "🎨 Collecte des fichiers statiques..."
 $PYTHON_CMD manage.py collectstatic --noinput --clear
 
 echo "🔧 Création du superutilisateur si nécessaire..."
-$PYTHON_CMD -c "
+# Retarder la création du superutilisateur après les migrations et collectstatic
+$PYTHON_CMD manage.py shell << 'EOF'
 from django.contrib.auth import get_user_model
 from django.db import transaction
 import os
@@ -73,7 +74,7 @@ if not User.objects.filter(is_superuser=True).exists():
         print('   Vous devrez le créer manuellement via python manage.py createsuperuser')
 else:
     print('✅ Superutilisateur déjà existant')
-"
+EOF
 
 echo "📊 Vérification de la base de données..."
 $PYTHON_CMD manage.py check --deploy
