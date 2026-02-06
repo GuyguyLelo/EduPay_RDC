@@ -15,24 +15,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-^x&feyt3bvm&#+bouop!*iqu%4g3vxr$um^gw@de+&l#-@6-@=')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Hosts
 # Solution simple et robuste pour Render
-if config('DEBUG', default=False, cast=bool):
-    # En production, accepter tous les domaines Render et localhost
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        'testserver',
-        'edupay-rdc-p9tw.onrender.com',
-        'edupay-rdc.onrender.com',
-        'onrender.com',
-        '.onrender.com',  # Accepte tous les sous-domaines
-    ]
-else:
-    # En développement, localhost uniquement
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'testserver',
+    'edupay-rdc-p9tw.onrender.com',
+    'edupay-rdc.onrender.com',
+    'onrender.com',
+    '.onrender.com',  # Accepte tous les sous-domaines
+]
 
 
 # Application definition
