@@ -17,6 +17,9 @@ cd /opt/render/project/src
 echo "📦 Installation des dépendances..."
 pip install -r requirements.txt
 
+echo "🔧 Installation de psycopg2-binary pour Python 3.11..."
+pip install psycopg2-binary==2.9.9
+
 echo "🗄️ Migration de la base de données PostgreSQL..."
 python manage.py migrate --noinput
 
@@ -57,7 +60,7 @@ else:
 echo "📊 Vérification de la base de données..."
 python manage.py check --deploy
 
-echo "🎯 Configuration des permissions..."
+echo "🔧 Configuration des permissions..."
 chmod -R 755 media/
 chmod -R 755 staticfiles/
 

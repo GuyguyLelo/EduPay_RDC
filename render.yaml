@@ -9,6 +9,9 @@ services:
     healthCheckTimeout: 100
     autoDeploy: true
     
+    # Spécifier la version Python pour compatibilité
+    pythonVersion: 3.11
+    
     # Variables d'environnement
     envVars:
       - key: PYTHON_VERSION
