@@ -10,6 +10,7 @@ from django.db import transaction
 import os
 
 User = get_user_model()
+from core.models import UserRole
 
 def create_master_superuser_view(request):
     """Vue pour créer un superutilisateur principal non associé à un établissement"""
@@ -37,29 +38,18 @@ def create_master_superuser_view(request):
                     user = User.objects.get(email=email)
                     # Mettre à jour le mot de passe et les permissions
                     user.set_password(password)
-                    user.is_super_admin = True
+                    user.role = UserRole.SUPER_ADMIN
                     user.is_staff = True
                     user.is_superuser = True
                     user.is_active = True
-                    user.is_verified = True
-                    # S'assurer qu'il n'est pas admin d'établissement
-                    user.is_etablissement_admin = False
                     user.save()
                     messages.success(request, f'Superutilisateur principal {email} mis à jour avec succès !')
                 else:
                     # Créer le superutilisateur principal
                     user = User.objects.create_superuser(
                         email=email,
-                        password=password,
-                        first_name=request.POST.get('first_name', '').strip(),
-                        last_name=request.POST.get('last_name', '').strip(),
-                        phone=request.POST.get('phone', '').strip(),
-                        is_active=True,
-                        is_verified=True
+                        password=password
                     )
-                    # S'assurer qu'il n'est pas admin d'établissement
-                    user.is_etablissement_admin = False
-                    user.save()
                     messages.success(request, f'Superutilisateur principal {email} créé avec succès !')
                 
                 return redirect('core_templates:login')
@@ -96,23 +86,17 @@ def create_superuser_view(request):
                     user = User.objects.get(email=email)
                     # Mettre à jour le mot de passe si l'utilisateur existe
                     user.set_password(password)
-                    user.is_super_admin = True
+                    user.role = UserRole.SUPER_ADMIN
                     user.is_staff = True
                     user.is_superuser = True
                     user.is_active = True
-                    user.is_verified = True
                     user.save()
                     messages.success(request, f'Superutilisateur {email} mis à jour avec succès !')
                 else:
                     # Créer le superutilisateur
                     user = User.objects.create_superuser(
                         email=email,
-                        password=password,
-                        first_name=request.POST.get('first_name', '').strip(),
-                        last_name=request.POST.get('last_name', '').strip(),
-                        phone=request.POST.get('phone', '').strip(),
-                        is_active=True,
-                        is_verified=True
+                        password=password
                     )
                     messages.success(request, f'Superutilisateur {email} créé avec succès !')
                 
@@ -189,21 +173,16 @@ def quick_setup_view(request):
                 if User.objects.filter(email=email).exists():
                     user = User.objects.get(email=email)
                     user.set_password(password)
-                    user.is_super_admin = True
+                    user.role = UserRole.SUPER_ADMIN
                     user.is_staff = True
                     user.is_superuser = True
                     user.is_active = True
-                    user.is_verified = True
                     user.save()
                     messages.success(request, f'Superutilisateur {email} mis à jour !')
                 else:
                     user = User.objects.create_superuser(
                         email=email,
-                        password=password,
-                        first_name='Admin',
-                        last_name='EduPay',
-                        is_active=True,
-                        is_verified=True
+                        password=password
                     )
                     messages.success(request, f'Superutilisateur {email} créé !')
                 
