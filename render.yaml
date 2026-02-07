@@ -17,7 +17,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: USE_SQLITE
-        value: "true"
+        value: "false"
       - key: DB_NAME
         value: edupay_rdc
       - key: DB_USER
@@ -46,4 +46,6 @@ services:
 databases:
   - name: edupay-rdc-db
     databaseName: edupay_rdc
-    user: edupay_user
+    user: postgres
+    plan: free
+    ipAllowList: []

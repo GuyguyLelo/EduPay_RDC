@@ -30,12 +30,8 @@ else
     PYTHON_CMD="python"
 fi
 
-# Activer temporairement SQLite pour éviter les erreurs PostgreSQL
-echo "🗄️ Activation temporaire de SQLite pour le déploiement..."
-export USE_SQLITE=True
-
 echo "📊 Configuration de la base de données..."
-echo "  Mode: SQLite (temporaire)"
+echo "  Mode: PostgreSQL (persistant)"
 echo "  Python: $($PYTHON_CMD --version)"
 
 echo "🗄️ Migration de la base de données..."
@@ -85,7 +81,7 @@ chmod -R 755 staticfiles/
 
 echo "✅ Build terminé avec succès!"
 echo "🌐 L'application est prête à démarrer sur Render..."
-echo "💡 Note: Utilisation temporaire de SQLite. Configurez PostgreSQL manuellement plus tard."
+echo "💡 Note: Utilisation de PostgreSQL persistant - les données sont conservées entre déploiements."
 
 # Script de santé pour Render
 echo "🏥 Vérification de santé..."

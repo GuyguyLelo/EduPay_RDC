@@ -90,8 +90,8 @@ WSGI_APPLICATION = 'EduPay_RDC.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Forcer SQLite temporairement pour éviter les erreurs PostgreSQL
-USE_SQLITE = os.environ.get('USE_SQLITE', 'true').lower() == 'true'
+# Utiliser PostgreSQL par défaut pour la persistance des données
+USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() == 'true'
 
 if USE_SQLITE:
     DATABASES = {
@@ -100,9 +100,9 @@ if USE_SQLITE:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-    print("🗄️ Utilisation de SQLite (temporaire)")
+    print("🗄️ Utilisation de SQLite (développement local)")
 else:
-    # Configuration PostgreSQL pour Render
+    # Configuration PostgreSQL pour Render (persistant)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -113,7 +113,7 @@ else:
             'PORT': config('DB_PORT', default='5432'),
         }
     }
-    print("🗄️ Utilisation de PostgreSQL")
+    print("🗄️ Utilisation de PostgreSQL (persistant)")
 
 
 # Custom User Model
