@@ -385,9 +385,17 @@
         
         <div class="sidebar-menu">
             {% if user.is_super_admin %}
-                <a href="{% url 'dashboard_admin_templates:dashboard_overview' %}" class="sidebar-item">
+                <a href="{% url 'core_templates:dashboard' %}" class="sidebar-item">
                     <i class="fas fa-tachometer-alt"></i>
                     Tableau de Bord
+                </a>
+                <a href="{% url 'admin_setup:create_master_superuser' %}" class="sidebar-item">
+                    <i class="fas fa-user-shield"></i>
+                    Créer Admin
+                </a>
+                <a href="/admin/" class="sidebar-item">
+                    <i class="fas fa-cogs"></i>
+                    Admin Django
                 </a>
                 <a href="#" class="sidebar-item">
                     <i class="fas fa-school"></i>
@@ -406,7 +414,7 @@
                     Rapports
                 </a>
             {% elif user.is_etablissement_admin %}
-                <a href="{% url 'etablissements_templates:etablissement_dashboard' %}" class="sidebar-item">
+                <a href="{% url 'core_templates:dashboard' %}" class="sidebar-item">
                     <i class="fas fa-tachometer-alt"></i>
                     Tableau de Bord
                 </a>
@@ -427,11 +435,11 @@
                     Rapports
                 </a>
             {% else %}
-                <a href="{% url 'etudiants_templates:etudiant_dashboard' %}" class="sidebar-item">
+                <a href="{% url 'core_templates:dashboard' %}" class="sidebar-item">
                     <i class="fas fa-tachometer-alt"></i>
                     Mon Tableau de Bord
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'core_templates:profile' %}" class="sidebar-item">
                     <i class="fas fa-user"></i>
                     Mon Profil
                 </a>
