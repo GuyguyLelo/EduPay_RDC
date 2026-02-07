@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Tableau de Bord - EduPay RDC{% endblock %}
+
+{% block page_title %}Tableau de Bord{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Établissements</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Utilisateurs</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Étudiants</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-label">Paiements</div>
+        </div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Bienvenue sur EduPay RDC
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h4 class="text-primary mb-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Bonjour, {{ user.email }} !
+                    </h4>
+                    
+                    {% if user.is_super_admin %}
+                        <p class="text-muted mb-4">
+                            En tant que Super Administrateur, vous avez accès à toutes les fonctionnalités de la plateforme.
+                            Vous pouvez gérer les établissements, les utilisateurs et superviser l'ensemble du système.
+                        </p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-plus-circle me-2"></i>
+                                        Créer un Établissement
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>
+                                        Ajouter un Admin
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    {% elif user.is_etablissement_admin %}
+                        <p class="text-muted mb-4">
+                            En tant qu'Administrateur d'établissement, vous pouvez gérer les étudiants, 
+                            les frais scolaires et suivre les paiements pour votre établissement.
+                        </p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-user-graduate me-2"></i>
+                                        Ajouter un Étudiant
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-coins me-2"></i>
+                                        Définir des Frais
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    {% else %}
+                        <p class="text-muted mb-4">
+                            Bienvenue sur votre espace personnel. Vous pouvez consulter vos informations,
+                            suivre vos frais scolaires et effectuer vos paiements en ligne.
+                        </p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-coins me-2"></i>
+                                        Mes Frais
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="d-grid">
+                                    <a href="#" class="btn btn-outline-primary btn-lg">
+                                        <i class="fas fa-credit-card me-2"></i>
+                                        Payer en Ligne
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-graduation-cap text-primary" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <h5 class="card-title">EduPay RDC</h5>
+                            <p class="card-text text-muted">
+                                Plateforme moderne de gestion des frais scolaires pour les établissements d'enseignement en RDC.
+                            </p>
+                            <small class="text-muted">
+                                Version 1.0.0<br>
+                                © 2024 Tous droits réservés
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    {% if user.is_super_admin %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Actions Rapides
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <a href="#" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-school fa-2x mb-2 d-block"></i>
+                                    Gérer les Établissements
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <a href="#" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-users fa-2x mb-2 d-block"></i>
+                                    Gérer les Utilisateurs
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <a href="#" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-chart-bar fa-2x mb-2 d-block"></i>
+                                    Voir les Rapports
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="text-center">
+                                <a href="#" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-cog fa-2x mb-2 d-block"></i>
+                                    Paramètres
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
