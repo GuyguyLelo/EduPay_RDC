@@ -103,17 +103,25 @@ if USE_SQLITE:
     print("🗄️ Utilisation de SQLite (développement local)")
 else:
     # Configuration PostgreSQL pour Render (persistant)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='edupay_rdc'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
+    # Utiliser DATABASE_URL si disponible, sinon configuration manuelle
+    if 'DATABASE_URL' in os.environ:
+        import dj_database_url
+        DATABASES = {
+            'default': dj_database_url.parse(os.environ['DATABASE_URL'])
         }
-    }
-    print("🗄️ Utilisation de PostgreSQL (persistant)")
+        print("🗄️ Utilisation de PostgreSQL via DATABASE_URL")
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': config('DB_NAME', default='edupay_rdc'),
+                'USER': config('DB_USER', default='postgres'),
+                'PASSWORD': config('DB_PASSWORD', default=''),
+                'HOST': config('DB_HOST', default='localhost'),
+                'PORT': config('DB_PORT', default='5432'),
+            }
+        }
+        print("🗄️ Utilisation de PostgreSQL (configuration manuelle)")
 
 
 # Custom User Model
