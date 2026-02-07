@@ -31,7 +31,7 @@ else
 fi
 
 echo "📊 Configuration de la base de données..."
-echo "  Mode: PostgreSQL (persistant)"
+echo "  Mode: SQLite (temporaire - PostgreSQL en cours de configuration)"
 echo "  Python: $($PYTHON_CMD --version)"
 
 echo "🗄️ Migration de la base de données..."
@@ -81,7 +81,7 @@ chmod -R 755 staticfiles/
 
 echo "✅ Build terminé avec succès!"
 echo "🌐 L'application est prête à démarrer sur Render..."
-echo "💡 Note: Utilisation de PostgreSQL persistant - les données sont conservées entre déploiements."
+echo "💡 Note: Utilisation temporaire de SQLite. PostgreSQL sera configuré ultérieurement."
 
 # Script de santé pour Render
 echo "🏥 Vérification de santé..."
