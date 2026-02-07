@@ -90,38 +90,14 @@ WSGI_APPLICATION = 'EduPay_RDC.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Utiliser PostgreSQL par défaut pour la persistance des données
-USE_SQLITE = os.environ.get('USE_SQLITE', 'false').lower() == 'true'
-
-if USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# Forcer SQLite pour un déploiement stable
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-    print("🗄️ Utilisation de SQLite (développement local)")
-else:
-    # Configuration PostgreSQL pour Render (persistant)
-    # Utiliser DATABASE_URL si disponible, sinon configuration manuelle
-    if 'DATABASE_URL' in os.environ:
-        import dj_database_url
-        DATABASES = {
-            'default': dj_database_url.parse(os.environ['DATABASE_URL'])
-        }
-        print("🗄️ Utilisation de PostgreSQL via DATABASE_URL")
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': config('DB_NAME', default='edupay_rdc'),
-                'USER': config('DB_USER', default='postgres'),
-                'PASSWORD': config('DB_PASSWORD', default=''),
-                'HOST': config('DB_HOST', default='localhost'),
-                'PORT': config('DB_PORT', default='5432'),
-            }
-        }
-        print("🗄️ Utilisation de PostgreSQL (configuration manuelle)")
+}
+print("🗄️ Utilisation de SQLite (déploiement stable)")
 
 
 # Custom User Model
