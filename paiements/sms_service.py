@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class CinetPaySMSService:
-    """Service pour envoyer des SMS via l'API CinetPay SMS"""
+    """Service pour envoyer des SMS via l'API CinetPay"""
     
     SMS_API_URL = "https://api-notitia.cinetpay.com/sms/1/text/single"
     
@@ -19,13 +19,17 @@ class CinetPaySMSService:
         self.api_key = getattr(settings, 'CINETPAY_SMS_API_KEY', '')
         self.sender_id = getattr(settings, 'CINETPAY_SMS_SENDER_ID', 'EDUPAY')
         
+        logger.info(f"Initialisation SMS CinetPay - API Key: {self.api_key[:10] if self.api_key else 'Non configurée'}...")
+        logger.info(f"Sender ID: {self.sender_id}")
+        
         if not self.api_key:
             logger.warning("Clé API SMS CinetPay non configurée")
-            raise ValueError(
-                "La clé API SMS CinetPay n'est pas configurée. "
-                "Veuillez définir CINETPAY_SMS_API_KEY dans votre fichier .env. "
-                "Pour obtenir une clé API SMS, contactez CinetPay à l'adresse support@cinetpay.com"
-            )
+            # Ne pas lever d'erreur pour ne pas bloquer les paiements
+            # raise ValueError(
+            #     "La clé API SMS CinetPay n'est pas configurée. "
+            #     "Veuillez définir CINETPAY_SMS_API_KEY dans votre fichier .env. "
+            #     "Pour obtenir une clé API SMS, contactez CinetPay à l'adresse support@cinetpay.com"
+            # )
     
     def envoyer_sms(self, numero_telephone: str, message: str) -> dict:
         """

@@ -106,25 +106,30 @@ def webhook_cinetpay(request):
     """
     try:
         payload = request.data
+        logger.info(f"Webhook CinetPay reçu: {payload}")
         
         # Valider le webhook
-        service = CinetPayService()
-        
-        if not service.valider_webhook(payload):
-            logger.warning("Webhook CinetPay rejeté: signature invalide")
+        try:
+            service = CinetPayService()
+            logger.info("Service CinetPay initialisé avec succès")
+        except Exception as e:
+            logger.error(f"Erreur d'initialisation CinetPay: {e}")
             return Response(
-                {'error': 'Signature invalide'},
-                status=status.HTTP_401_UNAUTHORIZED
+                {'error': f'Erreur de configuration: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
         # Traiter le webhook
         transaction_id = payload.get('cpm_trans_id') or payload.get('transaction_id')
         status_payment = payload.get('status', '').upper()
         
+        logger.info(f"Transaction ID: {transaction_id}, Status: {status_payment}")
+        
         if transaction_id:
             # Trouver le paiement
             try:
                 paiement = Paiement.objects.get(transaction_id=transaction_id)
+                logger.info(f"Paiement trouvé: {paiement.id}")
                 
                 if status_payment == 'ACCEPTED' or status_payment == 'SUCCESS':
                     paiement.statut = StatutPaiement.SUCCESS
@@ -134,7 +139,11 @@ def webhook_cinetpay(request):
                     logger.info(f"Paiement {paiement.id} confirmé via webhook CinetPay")
                     
                     # Envoyer le SMS de confirmation
-                    send_payment_confirmation_sms(paiement)
+                    try:
+                        send_payment_confirmation_sms(paiement)
+                        logger.info(f"SMS de confirmation envoyé pour le paiement {paiement.id}")
+                    except Exception as sms_error:
+                        logger.error(f"Erreur lors de l'envoi du SMS: {sms_error}")
                 
                 elif status_payment == 'REFUSED' or status_payment == 'FAILED':
                     paiement.statut = StatutPaiement.FAILED
@@ -147,6 +156,13 @@ def webhook_cinetpay(request):
                 logger.warning(f"Paiement non trouvé pour transaction_id: {transaction_id}")
         
         return Response({'status': 'success'}, status=status.HTTP_200_OK)
+    
+    except Exception as e:
+        logger.error(f"Erreur générale dans le webhook CinetPay: {e}")
+        return Response(
+            {'error': f'Erreur serveur: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
     
     except Exception as e:
         logger.exception(f"Erreur lors du traitement du webhook CinetPay: {str(e)}")

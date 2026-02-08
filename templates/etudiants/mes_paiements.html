@@ -13,7 +13,16 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-hourglass-split text-warning"></i> En Attente</h5>
                     <hr>
-                    <h3 class="text-warning">{{ paiements|selectattr:'statut'|selectequal:'PENDING'|list|length }}</h3>
+                    <h3 class="text-warning">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'PENDING' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
                     <p class="text-muted">Paiements en attente</p>
                 </div>
             </div>
@@ -24,7 +33,16 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-check-circle text-success"></i> Réussis</h5>
                     <hr>
-                    <h3 class="text-success">{{ paiements|selectattr:'statut'|selectequal:'SUCCESS'|list|length }}</h3>
+                    <h3 class="text-success">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'SUCCESS' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
                     <p class="text-muted">Paiements réussis</p>
                 </div>
             </div>
@@ -35,7 +53,16 @@
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-x-circle text-danger"></i> Échoués</h5>
                     <hr>
-                    <h3 class="text-danger">{{ paiements|selectattr:'statut'|selectequal:'FAILED'|list|length }}</h3>
+                    <h3 class="text-danger">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'FAILED' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
                     <p class="text-muted">Paiements échoués</p>
                 </div>
             </div>

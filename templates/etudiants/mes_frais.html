@@ -61,18 +61,16 @@
                             <td>{{ frais.annee_academique }}</td>
                             <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
                             <td>
-                                {% if frais.id in frais_a_payer.values_list 'id' as frais_ids %}
+                                {% with frais_ids=frais_a_payer.values_list 'id' %}
                                     {% if frais.id in frais_ids %}
                                         <span class="badge bg-warning">À payer</span>
                                     {% else %}
                                         <span class="badge bg-success">Payé</span>
                                     {% endif %}
-                                {% else %}
-                                    <span class="badge bg-warning">À payer</span>
-                                {% endif %}
+                                {% endwith %}
                             </td>
                             <td>
-                                {% if frais.id in frais_a_payer.values_list 'id' as frais_ids %}
+                                {% with frais_ids=frais_a_payer.values_list 'id' %}
                                     {% if frais.id in frais_ids %}
                                         <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
                                             <i class="bi bi-credit-card"></i> Payer
@@ -82,11 +80,7 @@
                                             <i class="bi bi-check-circle"></i> Payé
                                         </a>
                                     {% endif %}
-                                {% else %}
-                                    <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-credit-card"></i> Payer
-                                    </a>
-                                {% endif %}
+                                {% endwith %}
                             </td>
                         </tr>
                         {% endfor %}
