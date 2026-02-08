@@ -50,6 +50,97 @@ def dashboard_etudiant(request):
     return render(request, 'etudiants/dashboard.html', context)
 
 
+@login_required
+def mes_frais(request):
+    """Page des frais de l'étudiant"""
+    if not request.user.is_etudiant:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    try:
+        etudiant = request.user.etudiant
+    except Etudiant.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Profil étudiant non trouvé")
+    
+    # Frais à payer (frais actifs sans paiement réussi)
+    frais_payes = Paiement.objects.filter(
+        etudiant=etudiant,
+        statut=StatutPaiement.SUCCESS
+    ).values_list('frais_id', flat=True)
+    
+    frais_a_payer = Frais.objects.filter(
+        etablissement=etudiant.etablissement,
+        actif=True
+    ).exclude(id__in=frais_payes)
+    
+    # Tous les frais (payés et non payés)
+    tous_frais = Frais.objects.filter(
+        etablissement=etudiant.etablissement
+    ).order_by('-annee_academique', 'nom_frais')
+    
+    context = {
+        'etudiant': etudiant,
+        'frais_a_payer': frais_a_payer,
+        'tous_frais': tous_frais,
+    }
+    
+    return render(request, 'etudiants/mes_frais.html', context)
+
+
+@login_required
+def mes_paiements(request):
+    """Page des paiements de l'étudiant"""
+    if not request.user.is_etudiant:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    try:
+        etudiant = request.user.etudiant
+    except Etudiant.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Profil étudiant non trouvé")
+    
+    # Tous les paiements de l'étudiant
+    paiements = Paiement.objects.filter(
+        etudiant=etudiant
+    ).order_by('-date_creation')
+    
+    context = {
+        'etudiant': etudiant,
+        'paiements': paiements,
+    }
+    
+    return render(request, 'etudiants/mes_paiements.html', context)
+
+
+@login_required
+def mes_recus(request):
+    """Page des reçus de l'étudiant"""
+    if not request.user.is_etudiant:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    try:
+        etudiant = request.user.etudiant
+    except Etudiant.DoesNotExist:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Profil étudiant non trouvé")
+    
+    # Uniquement les paiements réussis pour les reçus
+    paiements_reussis = Paiement.objects.filter(
+        etudiant=etudiant,
+        statut=StatutPaiement.SUCCESS
+    ).order_by('-date_paiement')
+    
+    context = {
+        'etudiant': etudiant,
+        'paiements': paiements_reussis,
+    }
+    
+    return render(request, 'etudiants/mes_recus.html', context)
+
+
 
 
 

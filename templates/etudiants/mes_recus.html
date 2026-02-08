@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Reçus - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-file-text"></i> Mes Reçus</h2>
+    
+    <!-- Carte résumé -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-check-circle text-success"></i> Reçus Disponibles</h5>
+                    <hr>
+                    <h3 class="text-success">{{ paiements|length }}</h3>
+                    <p class="text-muted">Paiements réussis</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar text-info"></i> Total Payé</h5>
+                    <hr>
+                    <h3 class="text-info">
+                        {% widthratio paiements|length 1 100 as total_count %}
+                        {% for paiement in paiements %}
+                            {% if forloop.first %}{% endif %}
+                            {% if forloop.last %}
+                                {{ paiement.montant|add:0 }} {{ paiement.devise }}
+                            {% endif %}
+                        {% empty %}
+                            0 {{ paiements.0.devise|default:"USD" }}
+                        {% endfor %}
+                    </h3>
+                    <p class="text-muted">Montant total</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-download text-primary"></i> Téléchargements</h5>
+                    <hr>
+                    <h3 class="text-primary">∞</h3>
+                    <p class="text-muted">Téléchargeables</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des reçus -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-receipt"></i> Liste des Reçus</h5>
+        </div>
+        <div class="card-body">
+            {% if paiements %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date de paiement</th>
+                            <th>Type de frais</th>
+                            <th>Montant</th>
+                            <th>Méthode</th>
+                            <th>Transaction</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paiement in paiements %}
+                        <tr>
+                            <td>
+                                <strong>{{ paiement.date_paiement|date:"d/m/Y H:i" }}</strong>
+                                <br><small class="text-muted">Créé le {{ paiement.date_creation|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <strong>{{ paiement.frais.nom_frais }}</strong>
+                                {% if paiement.frais.annee_academique %}
+                                <br><small class="text-muted">{{ paiement.frais.annee_academique }}</small>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ paiement.montant }} {{ paiement.devise }}</strong></td>
+                            <td>
+                                {% if paiement.methode_paiement == 'MOBILE_MONEY' %}
+                                    <span class="badge bg-primary">Mobile Money</span>
+                                {% elif paiement.methode_paiement == 'CARD' %}
+                                    <span class="badge bg-info">Carte</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ paiement.methode_paiement }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code class="text-muted">{{ paiement.transaction_id|default:"N/A" }}</code>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'paiements_templates:paiement_receipt' paiement.id %}" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="bi bi-eye"></i> Voir
+                                    </a>
+                                    <a href="{% url 'paiements_templates:paiement_receipt' paiement.id %}" class="btn btn-sm btn-success" download>
+                                        <i class="bi bi-download"></i> PDF
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Actions groupées -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><i class="bi bi-gear"></i> Actions Groupées</h6>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary" onclick="selectAllReceipts()">
+                                    <i class="bi bi-check-all"></i> Tout sélectionner
+                                </button>
+                                <button class="btn btn-outline-success" onclick="downloadSelectedReceipts()">
+                                    <i class="bi bi-download"></i> Télécharger la sélection
+                                </button>
+                                <button class="btn btn-outline-info" onclick="emailSelectedReceipts()">
+                                    <i class="bi bi-envelope"></i> Envoyer par email
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-file-text" style="font-size: 3rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Aucun reçu disponible</h4>
+                <p class="text-muted">Vous n'avez pas encore de paiement réussi.</p>
+                <a href="{% url 'etudiants:mes_frais' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Voir mes frais à payer
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function selectAllReceipts() {
+    const checkboxes = document.querySelectorAll('input[name="receipt_ids"]');
+    checkboxes.forEach(checkbox => checkbox.checked = true);
+}
+
+function downloadSelectedReceipts() {
+    const selected = document.querySelectorAll('input[name="receipt_ids"]:checked');
+    if (selected.length === 0) {
+        alert('Veuillez sélectionner au moins un reçu');
+        return;
+    }
+    
+    selected.forEach(checkbox => {
+        const receiptId = checkbox.value;
+        window.open(`/paiements/receipt/${receiptId}/`, '_blank');
+    });
+}
+
+function emailSelectedReceipts() {
+    const selected = document.querySelectorAll('input[name="receipt_ids"]:checked');
+    if (selected.length === 0) {
+        alert('Veuillez sélectionner au moins un reçu');
+        return;
+    }
+    
+    alert('Fonctionnalité d\'envoi par email bientôt disponible');
+}
+</script>
+{% endblock %}

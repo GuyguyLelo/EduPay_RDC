@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Frais - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-coins"></i> Mes Frais</h2>
+    
+    <!-- Carte résumé -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-clock text-warning"></i> Frais à Payer</h5>
+                    <hr>
+                    <h3 class="text-warning">{{ frais_a_payer|length }}</h3>
+                    <p class="text-muted">En attente de paiement</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-list-check text-info"></i> Total des Frais</h5>
+                    <hr>
+                    <h3 class="text-info">{{ tous_frais|length }}</h3>
+                    <p class="text-muted">Tous les frais</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des frais -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-list"></i> Liste des Frais</h5>
+        </div>
+        <div class="card-body">
+            {% if tous_frais %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Type de frais</th>
+                            <th>Année académique</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for frais in tous_frais %}
+                        <tr>
+                            <td>
+                                <strong>{{ frais.nom_frais }}</strong>
+                                {% if frais.description %}
+                                <br><small class="text-muted">{{ frais.description }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ frais.annee_academique }}</td>
+                            <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
+                            <td>
+                                {% if frais.id in frais_a_payer.values_list 'id' as frais_ids %}
+                                    {% if frais.id in frais_ids %}
+                                        <span class="badge bg-warning">À payer</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Payé</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-warning">À payer</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if frais.id in frais_a_payer.values_list 'id' as frais_ids %}
+                                    {% if frais.id in frais_ids %}
+                                        <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-credit-card"></i> Payer
+                                        </a>
+                                    {% else %}
+                                        <a href="#" class="btn btn-sm btn-success" disabled>
+                                            <i class="bi bi-check-circle"></i> Payé
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-credit-card"></i> Payer
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Aucun frais disponible</h4>
+                <p class="text-muted">Votre établissement n'a pas encore configuré de frais scolaires.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
