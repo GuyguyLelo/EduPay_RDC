@@ -49,6 +49,11 @@ def payer_frais(request, frais_id):
         # Vérifier la configuration CinetPay
         api_key = getattr(settings, 'CINETPAY_API_KEY', '')
         site_id = getattr(settings, 'CINETPAY_SITE_ID', '')
+        
+        # Debug: afficher les valeurs pour diagnostiquer
+        logger.info(f"CINETPAY_API_KEY: {api_key[:10]}..." if api_key else "CINETPAY_API_KEY: Vide")
+        logger.info(f"CINETPAY_SITE_ID: {site_id}" if site_id else "CINETPAY_SITE_ID: Vide")
+        
         if not api_key or not site_id:
             messages.error(request, "Paiement non configuré. Veuillez contacter l'administrateur.")
             return redirect('etudiants_templates:etudiant_dashboard')
