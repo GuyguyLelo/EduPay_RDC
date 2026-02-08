@@ -25,9 +25,9 @@ services:
       - key: SITE_URL
         sync: false
       - key: CINETPAY_API_KEY
-        sync: false
+        value: "200492077654f2b6c8e9e4.263965826"
       - key: CINETPAY_SITE_ID
-        sync: false
+        value: "578321"
       - key: CINETPAY_ENV
         value: prod
       - key: DJANGO_SUPERUSER_USERNAME
