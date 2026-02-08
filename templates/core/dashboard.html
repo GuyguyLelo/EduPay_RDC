@@ -2,133 +2,85 @@
 
 {% block title %}Tableau de Bord - EduPay RDC{% endblock %}
 
-{% block page_title %}Tableau de Bord{% endblock %}
-
 {% block content %}
-<div class="container-fluid">
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-school"></i>
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Tableau de Bord</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-building text-primary"></i> Établissements</h5>
+                    <hr>
+                    <h3 class="text-primary">{{ stats.etablissements_count|default:0 }}</h3>
+                    <p class="text-muted">Établissements</p>
+                </div>
             </div>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Établissements</div>
         </div>
         
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-users"></i>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people text-success"></i> Utilisateurs</h5>
+                    <hr>
+                    <h3 class="text-success">{{ stats.utilisateurs_count|default:0 }}</h3>
+                    <p class="text-muted">Utilisateurs</p>
+                </div>
             </div>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Utilisateurs</div>
         </div>
         
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-user-graduate"></i>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-mortarboard text-info"></i> Étudiants</h5>
+                    <hr>
+                    <h3 class="text-info">{{ stats.etudiants_count|default:0 }}</h3>
+                    <p class="text-muted">Étudiants</p>
+                </div>
             </div>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Étudiants</div>
         </div>
         
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-dollar-sign"></i>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar text-warning"></i> Paiements</h5>
+                    <hr>
+                    <h3 class="text-warning">{{ stats.paiements_count|default:0 }}</h3>
+                    <p class="text-muted">Paiements</p>
+                </div>
             </div>
-            <div class="stat-value">0</div>
-            <div class="stat-label">Paiements</div>
         </div>
     </div>
-
+    
     <!-- Welcome Card -->
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header">
-            <h3 class="mb-0">
-                <i class="fas fa-tachometer-alt me-2"></i>
-                Bienvenue sur EduPay RDC
-            </h3>
+            <h5><i class="bi bi-house-door"></i> Bienvenue sur EduPay RDC</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-8">
-                    <h4 class="text-primary mb-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                        Bonjour, {{ user.email }} !
-                    </h4>
-                    
-                    {% if user.is_super_admin %}
-                        <p class="text-muted mb-4">
-                            En tant que Super Administrateur, vous avez accès à toutes les fonctionnalités de la plateforme.
-                            Vous pouvez gérer les établissements, les utilisateurs et superviser l'ensemble du système.
-                        </p>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-plus-circle me-2"></i>
-                                        Créer un Établissement
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-outline-primary btn-lg">
-                                        <i class="fas fa-user-plus me-2"></i>
-                                        Ajouter un Admin
-                                    </a>
-                                </div>
-                            </div>
+                    <h4 class="text-primary">Plateforme de Gestion des Paiements Scolaires</h4>
+                    <p class="text-muted">
+                        EduPay RDC est une solution moderne pour la gestion des frais scolaires, 
+                        permettant aux établissements de suivre facilement les paiements des étudiants 
+                        via Mobile Money et autres méthodes de paiement électroniques.
+                    </p>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Paiements Mobile Money</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Notifications automatiques</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Rapports détaillés</li>
+                            </ul>
                         </div>
-                        
-                    {% elif user.is_etablissement_admin %}
-                        <p class="text-muted mb-4">
-                            En tant qu'Administrateur d'établissement, vous pouvez gérer les étudiants, 
-                            les frais scolaires et suivre les paiements pour votre établissement.
-                        </p>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-user-graduate me-2"></i>
-                                        Ajouter un Étudiant
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-outline-primary btn-lg">
-                                        <i class="fas fa-coins me-2"></i>
-                                        Définir des Frais
-                                    </a>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Gestion multi-établissements</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Interface utilisateur moderne</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Sécurité des données</li>
+                            </ul>
                         </div>
-                        
-                    {% else %}
-                        <p class="text-muted mb-4">
-                            Bienvenue sur votre espace personnel. Vous pouvez consulter vos informations,
-                            suivre vos frais scolaires et effectuer vos paiements en ligne.
-                        </p>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-coins me-2"></i>
-                                        Mes Frais
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-grid">
-                                    <a href="#" class="btn btn-outline-primary btn-lg">
-                                        <i class="fas fa-credit-card me-2"></i>
-                                        Payer en Ligne
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     {% endif %}

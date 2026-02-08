@@ -232,5 +232,9 @@ CINETPAY_API_KEY = os.environ.get('CINETPAY_API_KEY', '200492077654f2b6c8e9e4.26
 CINETPAY_SITE_ID = os.environ.get('CINETPAY_SITE_ID', '578321')
 CINETPAY_ENV = os.environ.get('CINETPAY_ENV', 'prod')
 
+# Configuration SMS CinetPay
+CINETPAY_SMS_API_KEY = os.environ.get('CINETPAY_SMS_API_KEY', '200492077654f2b6c8e9e4.263965826')
+CINETPAY_SMS_SENDER_ID = os.environ.get('CINETPAY_SMS_SENDER_ID', 'EDUPAY')
+
 # Configuration du site
 SITE_URL = os.environ.get('SITE_URL', 'https://edupay-rdc-1.onrender.com')

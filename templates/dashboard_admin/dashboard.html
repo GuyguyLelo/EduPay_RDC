@@ -3,51 +3,156 @@
 {% block title %}Dashboard Super Admin - EduPay RDC{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-2 sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
-                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
-                    <i class="bi bi-building"></i> Établissements
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
-                    <i class="bi bi-credit-card"></i> Paiements
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
-                    <i class="bi bi-graph-up"></i> Rapports
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
-                    <i class="bi bi-calendar-check"></i> Abonnements
-                </a>
-            </nav>
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard Super Admin</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-building text-primary"></i> Établissements</h5>
+                    <hr>
+                    <h3 class="text-primary">{{ stats.total_etablissements|default:0 }}</h3>
+                    <p class="text-muted">Établissements</p>
+                </div>
+            </div>
         </div>
         
-        <!-- Main Content -->
-        <div class="col-md-10">
-            <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard Super Admin</h2>
-            
-            <!-- Statistiques -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card text-center">
-                        <div class="icon text-primary">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <h3>{{ stats.total_etablissements }}</h3>
-                        <p class="text-muted">Établissements</p>
-                    </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people text-success"></i> Étudiants</h5>
+                    <hr>
+                    <h3 class="text-success">{{ stats.total_etudiants|default:0 }}</h3>
+                    <p class="text-muted">Étudiants</p>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card text-center">
-                        <div class="icon text-success">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <h3>{{ stats.total_etudiants }}</h3>
-                        <p class="text-muted">Étudiants</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar text-info"></i> Paiements</h5>
+                    <hr>
+                    <h3 class="text-info">{{ stats.total_paiements|default:0 }}</h3>
+                    <p class="text-muted">Paiements</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-calendar-check text-warning"></i> Abonnements</h5>
+                    <hr>
+                    <h3 class="text-warning">{{ stats.total_abonnements|default:0 }}</h3>
+                    <p class="text-muted">Abonnements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions Rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-plus-circle text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Nouvel Établissement</h5>
+                    <p class="text-muted">Ajouter un établissement</p>
+                    <a href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Ajouter
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-plus text-success" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Créer Admin</h5>
+                    <p class="text-muted">Ajouter un admin</p>
+                    <a href="{% url 'admin_setup:create_master_superuser' %}" class="btn btn-success">
+                        <i class="bi bi-plus-lg"></i> Créer
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-receipt text-info" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Voir Paiements</h5>
+                    <p class="text-muted">Consulter les paiements</p>
+                    <a href="{% url 'dashboard_admin_templates:dashboard_paiements' %}" class="btn btn-info">
+                        <i class="bi bi-eye"></i> Voir
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-graph-up text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Rapports</h5>
+                    <p class="text-muted">Voir les statistiques</p>
+                    <a href="{% url 'dashboard_admin_templates:dashboard_rapports' %}" class="btn btn-warning">
+                        <i class="bi bi-bar-chart"></i> Rapports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau récent -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-clock-history"></i> Activités Récentes</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr>
+                            <td>{{ activity.date|date:"d/m/Y H:i" }}</td>
+                            <td>{{ activity.type }}</td>
+                            <td>{{ activity.description }}</td>
+                            <td>{{ activity.montant|default:"-" }}</td>
+                            <td>
+                                {% if activity.statut == 'SUCCESS' %}
+                                    <span class="badge bg-success">Réussi</span>
+                                {% elif activity.statut == 'PENDING' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Échoué</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Aucune activité récente</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
                     </div>
                 </div>
                 <div class="col-md-3">
