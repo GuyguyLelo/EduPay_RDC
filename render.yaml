@@ -37,7 +37,7 @@ services:
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
       - key: ALLOWED_HOSTS
-        value: "localhost,127.0.0.1,testserver,edupay-rdc-p9tw.onrender.com,edupay-rdc.onrender.com,onrender.com,.onrender.com"
+        value: "localhost,127.0.0.1,testserver,edupay-rdc-p9tw.onrender.com,edupay-rdc.onrender.com,edupay-rdc-1.onrender.com,onrender.com,.onrender.com"
 
 databases:
   - name: edupay-rdc-db
