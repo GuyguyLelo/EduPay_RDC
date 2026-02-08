@@ -97,7 +97,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('DB_NAME'),
@@ -109,6 +109,14 @@ DATABASES = {
 }
 
 print("🐘 Utilisation de PostgreSQL (production ready)")
+"""
+
+
+DATABASES = {
+    'default': dj_database_url.parse(
+        config('DATABASE_URL')
+    )
+}
 
 
 
