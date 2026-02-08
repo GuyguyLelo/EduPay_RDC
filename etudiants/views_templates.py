@@ -79,9 +79,13 @@ def mes_frais(request):
         etablissement=etudiant.etablissement
     ).order_by('-annee_academique', 'nom_frais')
     
+    # Récupérer les IDs des frais à payer pour le template
+    frais_a_payer_ids = list(frais_a_payer.values_list('id', flat=True))
+    
     context = {
         'etudiant': etudiant,
         'frais_a_payer': frais_a_payer,
+        'frais_a_payer_ids': frais_a_payer_ids,
         'tous_frais': tous_frais,
     }
     

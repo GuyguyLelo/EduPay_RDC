@@ -61,26 +61,22 @@
                             <td>{{ frais.annee_academique }}</td>
                             <td><strong>{{ frais.montant }} {{ frais.devise }}</strong></td>
                             <td>
-                                {% with frais_ids=frais_a_payer.values_list 'id' %}
-                                    {% if frais.id in frais_ids %}
-                                        <span class="badge bg-warning">À payer</span>
-                                    {% else %}
-                                        <span class="badge bg-success">Payé</span>
-                                    {% endif %}
-                                {% endwith %}
+                                {% if frais.id in frais_a_payer_ids %}
+                                    <span class="badge bg-warning">À payer</span>
+                                {% else %}
+                                    <span class="badge bg-success">Payé</span>
+                                {% endif %}
                             </td>
                             <td>
-                                {% with frais_ids=frais_a_payer.values_list 'id' %}
-                                    {% if frais.id in frais_ids %}
-                                        <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-credit-card"></i> Payer
-                                        </a>
-                                    {% else %}
-                                        <a href="#" class="btn btn-sm btn-success" disabled>
-                                            <i class="bi bi-check-circle"></i> Payé
-                                        </a>
-                                    {% endif %}
-                                {% endwith %}
+                                {% if frais.id in frais_a_payer_ids %}
+                                    <a href="{% url 'paiements_templates:paiement_create' frais.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-credit-card"></i> Payer
+                                    </a>
+                                {% else %}
+                                    <a href="#" class="btn btn-sm btn-success" disabled>
+                                        <i class="bi bi-check-circle"></i> Payé
+                                    </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
