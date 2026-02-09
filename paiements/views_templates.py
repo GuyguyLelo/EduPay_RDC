@@ -286,11 +286,13 @@ def paiement_verifier(request, paiement_id):
     # Vérifier le statut via CinetPay
     try:
         service = CinetPayService()
+        logger.info(f"Vérification du paiement {paiement.id} avec transaction_id: {paiement.transaction_id}")
+        result = service.verifier_statut_paiement(paiement.transaction_id)
+        logger.info(f"Résultat vérification: {result}")
     except (ValueError, Exception) as e:
+        logger.error(f"Erreur lors de la vérification: {str(e)}")
         messages.error(request, f"Erreur de configuration: {str(e)}")
         return redirect('etudiants:dashboard_etudiant')
-    
-    result = service.verifier_statut_paiement(paiement.transaction_id)
     
     if result.get('success'):
         if paiement.statut == StatutPaiement.SUCCESS:
