@@ -17,7 +17,7 @@ urlpatterns = [
     # URLs templates pour les paiements
     path('liste/', views_templates.liste_paiements, name='liste_paiements'),
     path('payer/<int:frais_id>/', views_templates.payer_frais, name='paiement_create'),
-    path('verifier/<int:paiement_id>/', views_templates.verifier_paiement, name='paiement_verifier'),
+    path('verifier/<int:paiement_id>/', views_templates.paiement_verifier, name='paiement_verifier'),
     path('receipt/<int:paiement_id>/', views_templates.paiement_receipt, name='paiement_receipt'),
 ]
 
