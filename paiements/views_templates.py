@@ -18,6 +18,33 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
+def liste_paiements(request):
+    """Liste des paiements pour l'admin"""
+    if not (request.user.is_super_admin or request.user.is_etablissement_admin):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    if request.user.is_super_admin:
+        paiements = Paiement.objects.select_related('etudiant', 'frais', 'etudiant__etablissement').all()
+    elif request.user.is_etablissement_admin:
+        etablissement = request.user.etablissement_admin
+        if etablissement:
+            paiements = Paiement.objects.select_related('etudiant', 'frais').filter(
+                etudiant__etablissement=etablissement
+            )
+        else:
+            paiements = Paiement.objects.none()
+    else:
+        paiements = Paiement.objects.none()
+    
+    context = {
+        'paiements': paiements.order_by('-date_creation'),
+    }
+    
+    return render(request, 'paiements/liste.html', context)
+
+
+@login_required
 def payer_frais(request, frais_id):
     """
     Page de paiement d'un frais - Méthode CinetPay Seamless (SDK JavaScript).

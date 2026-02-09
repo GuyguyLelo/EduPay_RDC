@@ -69,26 +69,5 @@
             </p>
         </div>
     </form>
-
-    <!-- Liens de configuration admin -->
-    <div class="mt-4 pt-4 border-top">
-        <p class="text-center text-muted mb-2">
-            <small>Configuration Administrateur</small>
-        </p>
-        <div class="d-grid gap-2">
-            <a href="{% url 'admin_setup:create_master_superuser' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-user-shield me-2"></i>
-                Créer Superutilisateur Principal
-            </a>
-            <a href="{% url 'admin_setup:quick_setup' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-rocket me-2"></i>
-                Configuration Rapide
-            </a>
-            <a href="{% url 'admin_setup:force_login' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-tools me-2"></i>
-                Connexion Forcée (Débogage)
-            </a>
-        </div>
-    </div>
 </div>
 {% endblock %}

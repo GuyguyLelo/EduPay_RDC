@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Paiements - EduPay RDC{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-credit-card"></i> Liste des Paiements</h2>
+    
+    <!-- Carte résumé -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-hourglass-split text-warning"></i> En Attente</h5>
+                    <hr>
+                    <h3 class="text-warning">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'PENDING' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
+                    <p class="text-muted">Paiements en attente</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-check-circle text-success"></i> Réussis</h5>
+                    <hr>
+                    <h3 class="text-success">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'SUCCESS' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
+                    <p class="text-muted">Paiements réussis</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-x-circle text-danger"></i> Échoués</h5>
+                    <hr>
+                    <h3 class="text-danger">
+                        {% for paiement in paiements %}
+                            {% if paiement.statut == 'FAILED' %}
+                                {% if forloop.first %}0{% endif %}
+                                {% if not forloop.first %}{{ forloop.counter0 }}{% endif %}
+                            {% endif %}
+                        {% empty %}
+                            0
+                        {% endfor %}
+                    </h3>
+                    <p class="text-muted">Paiements échoués</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-currency-dollar text-info"></i> Total</h5>
+                    <hr>
+                    <h3 class="text-info">{{ paiements|length }}</h3>
+                    <p class="text-muted">Tous les paiements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tableau des paiements -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-list"></i> Historique des Paiements</h5>
+        </div>
+        <div class="card-body">
+            {% if paiements %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Étudiant</th>
+                            <th>Type de frais</th>
+                            <th>Montant</th>
+                            <th>Méthode</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paiement in paiements %}
+                        <tr>
+                            <td>{{ paiement.date_creation|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <strong>{{ paiement.etudiant.nom_complet }}</strong>
+                                {% if paiement.etudiant.etablissement %}
+                                <br><small class="text-muted">{{ paiement.etudiant.etablissement.nom_etablissement }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ paiement.frais.nom_frais }}</td>
+                            <td><strong>{{ paiement.montant }} {{ paiement.devise }}</strong></td>
+                            <td>
+                                {% if paiement.methode_paiement == 'MOBILE_MONEY' %}
+                                    <span class="badge bg-primary">Mobile Money</span>
+                                {% elif paiement.methode_paiement == 'CARD' %}
+                                    <span class="badge bg-info">Carte</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ paiement.methode_paiement }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if paiement.statut == 'SUCCESS' %}
+                                    <span class="badge bg-success">Réussi</span>
+                                {% elif paiement.statut == 'PENDING' %}
+                                    <span class="badge bg-warning">En attente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Échoué</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if paiement.statut == 'SUCCESS' %}
+                                    <a href="{% url 'paiements:paiement_receipt' paiement.id %}" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="bi bi-receipt"></i> Reçu
+                                    </a>
+                                {% elif paiement.statut == 'PENDING' %}
+                                    <a href="{% url 'paiements:paiement_verifier' paiement.id %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-arrow-clockwise"></i> Vérifier
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-credit-card" style="font-size: 3rem; color: #6c757d;"></i>
+                <h4 class="mt-3">Aucun paiement trouvé</h4>
+                <p class="text-muted">Aucun paiement n'a été effectué pour le moment.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

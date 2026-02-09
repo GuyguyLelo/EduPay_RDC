@@ -83,7 +83,7 @@
         .sidebar-item {
             display: block;
             padding: 0.875rem 1.5rem;
-            color: #ffffff;
+            color: #ffffff !important;
             text-decoration: none;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
@@ -92,14 +92,14 @@
 
         .sidebar-item:hover {
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: white !important;
             border-left-color: white;
             text-decoration: none;
         }
 
         .sidebar-item.active {
             background: rgba(255, 255, 255, 0.15);
-            color: white;
+            color: white !important;
             border-left-color: white;
         }
 
@@ -393,27 +393,16 @@
                     <i class="fas fa-tachometer-alt"></i>
                     Tableau de Bord
                 </a>
-                <a href="{% url 'admin_setup:create_master_superuser' %}" class="sidebar-item">
-                    <i class="fas fa-user-shield"></i>
-                    Créer Admin
-                </a>
-                <a href="/admin/" class="sidebar-item">
-                    <i class="fas fa-cogs"></i>
-                    Admin Django
-                </a>
-                <a href="#" class="sidebar-item">
+                
+                <a href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}" class="sidebar-item">
                     <i class="fas fa-school"></i>
                     Établissements
                 </a>
-                <a href="#" class="sidebar-item">
-                    <i class="fas fa-users"></i>
-                    Utilisateurs
-                </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'paiements:liste_paiements' %}" class="sidebar-item">
                     <i class="fas fa-dollar-sign"></i>
                     Paiements
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'dashboard_admin_templates:dashboard_rapports' %}" class="sidebar-item">
                     <i class="fas fa-chart-bar"></i>
                     Rapports
                 </a>
@@ -422,19 +411,19 @@
                     <i class="fas fa-tachometer-alt"></i>
                     Tableau de Bord
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'etudiants:etudiant_dashboard' %}" class="sidebar-item">
                     <i class="fas fa-user-graduate"></i>
                     Étudiants
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'frais:liste_frais' %}" class="sidebar-item">
                     <i class="fas fa-coins"></i>
                     Frais Scolaires
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'paiements:liste_paiements' %}" class="sidebar-item">
                     <i class="fas fa-credit-card"></i>
                     Paiements
                 </a>
-                <a href="#" class="sidebar-item">
+                <a href="{% url 'dashboard_admin_templates:dashboard_rapports' %}" class="sidebar-item">
                     <i class="fas fa-file-invoice"></i>
                     Rapports
                 </a>
