@@ -29,7 +29,7 @@ services:
       - key: CINETPAY_SITE_ID
         value: "578321"
       - key: CINETPAY_SMS_API_KEY
-        value: "VOTRE_CLÉ_API_SMS_ICI"  # À remplacer par votre vraie clé API SMS
+        value: "200492077654f2b6c8e9e4.263965826"  # Temporairement même clé pour tester
       - key: CINETPAY_SMS_SENDER_ID
         value: "EDUPAY"
       - key: CINETPAY_ENV

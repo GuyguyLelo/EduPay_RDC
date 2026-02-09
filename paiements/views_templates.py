@@ -288,20 +288,20 @@ def paiement_verifier(request, paiement_id):
         service = CinetPayService()
     except (ValueError, Exception) as e:
         messages.error(request, f"Erreur de configuration: {str(e)}")
-        return redirect('etudiants_templates:etudiant_dashboard')
+        return redirect('etudiants:dashboard_etudiant')
     
     result = service.verifier_paiement(paiement)
     
     if result.get('success'):
         if paiement.statut == StatutPaiement.SUCCESS:
             messages.success(request, "Votre paiement a été confirmé avec succès !")
-            return redirect('paiements_templates:paiement_success', paiement_id=paiement.id)
+            return redirect('etudiants:mes_paiements')
         else:
             messages.info(request, f"Le statut du paiement est: {paiement.get_statut_display()}")
     else:
         messages.warning(request, f"Impossible de vérifier le paiement: {result.get('message', 'Erreur inconnue')}")
     
-    return redirect('etudiants_templates:etudiant_dashboard')
+    return redirect('etudiants:mes_paiements')
 
 
 @login_required
@@ -316,7 +316,7 @@ def paiement_receipt(request, paiement_id):
     
     if paiement.statut != StatutPaiement.SUCCESS:
         messages.error(request, "Ce paiement n'a pas été complété avec succès.")
-        return redirect('etudiants_templates:etudiant_dashboard')
+        return redirect('etudiants:mes_paiements')
     
     # Générer le PDF
     pdf_buffer = generate_receipt_pdf(paiement)
