@@ -290,7 +290,7 @@ def paiement_verifier(request, paiement_id):
         messages.error(request, f"Erreur de configuration: {str(e)}")
         return redirect('etudiants:dashboard_etudiant')
     
-    result = service.verifier_paiement(paiement)
+    result = service.verifier_statut_paiement(paiement.transaction_id)
     
     if result.get('success'):
         if paiement.statut == StatutPaiement.SUCCESS:
