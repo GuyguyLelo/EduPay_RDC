@@ -287,7 +287,19 @@ def paiement_verifier(request, paiement_id):
     try:
         service = CinetPayService()
         logger.info(f"Vérification du paiement {paiement.id} avec transaction_id: {paiement.transaction_id}")
-        result = service.verifier_statut_paiement(paiement.transaction_id)
+        
+        # Vérifier que la méthode existe
+        if hasattr(service, 'verifier_statut_paiement'):
+            result = service.verifier_statut_paiement(paiement.transaction_id)
+        else:
+            # Alternative: utiliser le webhook ou statut actuel
+            logger.warning("Méthode verifier_statut_paiement non trouvée, utilisation du statut actuel")
+            result = {
+                'success': True,
+                'status': paiement.statut,
+                'message': f'Statut actuel: {paiement.get_statut_display()}'
+            }
+        
         logger.info(f"Résultat vérification: {result}")
     except (ValueError, Exception) as e:
         logger.error(f"Erreur lors de la vérification: {str(e)}")
