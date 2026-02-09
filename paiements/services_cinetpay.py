@@ -243,12 +243,17 @@ class CinetPayService:
                 'transaction_id': transaction_id
             }
             
+            # Utiliser le bon endpoint pour la vérification
             response = requests.post(
-                f"{self.base_url}/check",
+                f"{self.base_url}/payment/check",
                 json=data,
                 headers={'Content-Type': 'application/json'},
                 timeout=30
             )
+            
+            logger.info(f"API CinetPay URL: {self.base_url}/payment/check")
+            logger.info(f"Données envoyées: {data}")
+            logger.info(f"Status code: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
@@ -259,14 +264,14 @@ class CinetPayService:
                     'data': result
                 }
             else:
+                logger.error(f"Erreur API CinetPay: {response.status_code} - {response.text}")
                 return {
                     'success': False,
                     'error': f'Erreur API: {response.status_code}',
                     'details': response.text
                 }
-                
         except Exception as e:
-            logger.error(f"Exception lors de la vérification du paiement {transaction_id}: {str(e)}")
+            logger.error(f"Erreur lors de la vérification du paiement: {str(e)}")
             return {
                 'success': False,
                 'error': f'Erreur interne: {str(e)}'

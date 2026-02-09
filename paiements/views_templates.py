@@ -290,7 +290,11 @@ def paiement_verifier(request, paiement_id):
         
         # Vérifier que la méthode existe
         if hasattr(service, 'verifier_statut_paiement'):
-            result = service.verifier_statut_paiement(paiement.transaction_id)
+            # Si pas de transaction_id, utiliser l'ID du paiement
+            transaction_id = paiement.transaction_id or str(paiement.id)
+            logger.info(f"Transaction ID utilisé: {transaction_id}")
+            
+            result = service.verifier_statut_paiement(transaction_id)
         else:
             # Alternative: utiliser le webhook ou statut actuel
             logger.warning("Méthode verifier_statut_paiement non trouvée, utilisation du statut actuel")
