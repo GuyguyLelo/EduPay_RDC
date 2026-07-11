@@ -1,6 +1,4 @@
 arabic-reshaper==3.0.0
---extra-index-url https://test.pypi.org/simple/
-cinetpay-sdk==0.1.1
 asgiref==3.11.0
 asn1crypto==1.5.1
 certifi==2026.1.4
