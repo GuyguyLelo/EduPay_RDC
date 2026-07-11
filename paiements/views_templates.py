@@ -117,71 +117,42 @@ def payer_frais(request, frais_id):
         paiement.reference_flutterwave = transaction_id
         paiement.save()
         
-        # Valider uniquement la configuration CinetPay sans créer de paiement
+        # Utiliser l'API REST Python pour initier le paiement (plus fiable que le SDK JavaScript)
         try:
             from .services_cinetpay import CinetPayService
             service = CinetPayService()
-            # Juste valider que le service fonctionne, pas créer de paiement
-            logger.info("Service CinetPay initialisé avec succès")
+            
+            # Initier le paiement via l'API REST
+            result = service.initier_paiement_carte_bancaire(
+                paiement=paiement,
+                redirect_url=None
+            )
+            
+            logger.info(f"Résultat initialisation paiement: {result}")
+            
+            if result.get('success') and result.get('payment_url'):
+                # Rediriger vers l'URL de paiement CinetPay
+                logger.info(f"Redirection vers URL de paiement: {result['payment_url']}")
+                return redirect(result['payment_url'])
+            else:
+                # Si l'API échoue, afficher une erreur
+                error_msg = result.get('error', 'Erreur lors de l\'initialisation du paiement')
+                logger.error(f"Échec initialisation paiement: {error_msg}")
+                messages.error(request, f"Erreur: {error_msg}")
+                return render(request, 'paiements/payer.html', {
+                    'frais': frais,
+                    'etudiant': etudiant,
+                    'has_operator_error': False
+                })
             
         except Exception as e:
-            logger.error(f"Erreur d'initialisation CinetPay: {e}")
+            logger.error(f"Erreur lors de l'initialisation du paiement: {str(e)}")
             messages.error(request, f"Erreur de configuration du paiement: {str(e)}")
             return render(request, 'paiements/payer.html', {
                 'frais': frais,
                 'etudiant': etudiant,
                 'has_operator_error': False
             })
-        
-        # URL de notification pour le webhook
-        site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000').rstrip('/')
-        try:
-            notify_path = reverse('paiements:webhook_cinetpay')
-            notify_url = f"{site_url}{notify_path}"
-        except Exception:
-            notify_url = f"{site_url}/api/paiements/webhook/cinetpay/"
-        
-        cinetpay_config = {
-            'apikey': api_key,
-            'site_id': site_id,
-            'notify_url': notify_url,
-            'mode': getattr(settings, 'CINETPAY_ENV', 'test')
-        }
-        
-        # Montant: pour CDF pas de décimales, pour USD 2 décimales
-        amount_float = float(paiement.montant)
-        if paiement.devise == 'CDF':
-            amount_float = int(amount_float)
-        elif paiement.devise == 'USD':
-            # S'assurer que USD a 2 décimales et utilise un point comme séparateur
-            amount_float = round(amount_float, 2)
-        
-        # Forcer le format avec point décimal pour éviter les problèmes de localisation
-        amount_str = str(amount_float).replace(',', '.')
-        
-        description = f"Paiement {frais.nom_frais} - {frais.etablissement.nom}"
-        
-        context = {
-            'frais': frais,
-            'etudiant': etudiant,
-            'paiement': paiement,
-            'cinetpay_config': cinetpay_config,
-            'checkout_transaction_id': transaction_id,  # Utiliser la variable définie plus haut
-            'checkout_amount': amount_str,  # Utiliser la chaîne avec point décimal
-            'checkout_currency': paiement.devise,
-            'checkout_description': description,
-            'customer_name': customer_name,
-            'customer_surname': customer_surname,
-            'customer_email': customer_email,
-            'customer_phone_number': customer_phone_number,
-            'customer_address': request.POST.get('customer_address', '') or 'N/A',
-            'customer_city': request.POST.get('customer_city', '') or 'Kinshasa',
-            'customer_country': request.POST.get('customer_country', '') or 'CD',
-            'customer_state': request.POST.get('customer_state', '') or 'CD',
-            'customer_zip_code': request.POST.get('customer_zip_code', '') or '00000',
-            'has_operator_error': False
-        }
-        return render(request, 'paiements/payer.html', context)
     
     # GET: afficher le formulaire coordonnées
     error_messages = list(messages.get_messages(request))
