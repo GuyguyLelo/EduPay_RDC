@@ -122,7 +122,7 @@ class CinetPayService:
             
             # Faire l'appel API avec requests
             response = requests.post(
-                f"{self.base_url}/payment",
+                f"{self.checkout_url}/payment/submit",
                 json=data,
                 headers={'Content-Type': 'application/json'},
                 timeout=30
@@ -194,7 +194,7 @@ class CinetPayService:
             
             # Faire l'appel API avec requests
             response = requests.post(
-                f"{self.base_url}/payment",
+                f"{self.checkout_url}/payment/submit",
                 json=data,
                 headers={'Content-Type': 'application/json'},
                 timeout=30
