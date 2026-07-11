@@ -25,10 +25,10 @@ class CinetPayService:
         # URLs de l'API CinetPay
         if self.environment == 'prod':
             self.base_url = 'https://api.cinetpay.com/v1'
-            self.checkout_url = 'https://api-checkout.cinetpay.com/v2'
+            self.checkout_url = 'https://api.cinetpay.com/v2'
         else:
             self.base_url = 'https://api-sandbox.cinetpay.com/v1'
-            self.checkout_url = 'https://api-checkout-sandbox.cinetpay.com/v2'
+            self.checkout_url = 'https://api-sandbox.cinetpay.com/v2'
         
         if not self.api_key or not self.site_id:
             logger.warning("Clés CinetPay non configurées")
