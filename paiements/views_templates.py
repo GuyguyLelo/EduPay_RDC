@@ -117,18 +117,17 @@ def payer_frais(request, frais_id):
         paiement.reference_flutterwave = transaction_id
         paiement.save()
         
-        # Utiliser l'API REST Python pour initier le paiement (plus fiable que le SDK JavaScript)
+        # Utiliser CinetPay pour le paiement
         try:
-            from .services_cinetpay import CinetPayService
             service = CinetPayService()
             
-            # Initier le paiement via l'API REST
+            # Initier le paiement via CinetPay (carte bancaire)
             result = service.initier_paiement_carte_bancaire(
                 paiement=paiement,
                 redirect_url=None
             )
             
-            logger.info(f"Résultat initialisation paiement: {result}")
+            logger.info(f"Résultat initialisation paiement CinetPay: {result}")
             
             if result.get('success') and result.get('payment_url'):
                 # Rediriger vers l'URL de paiement CinetPay

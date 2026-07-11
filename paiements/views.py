@@ -74,7 +74,7 @@ class PaiementViewSet(viewsets.ModelViewSet):
         service = CinetPayService()
         
         if paiement.transaction_id:
-            result = service.verifier_paiement(paiement)
+            result = service.verifier_statut_paiement(paiement.transaction_id)
             
             if result.get('success'):
                 if paiement.statut == StatutPaiement.SUCCESS:

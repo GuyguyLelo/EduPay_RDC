@@ -22,9 +22,13 @@ class CinetPayService:
         self.site_id = getattr(settings, 'CINETPAY_SITE_ID', '')
         self.environment = getattr(settings, 'CINETPAY_ENV', 'test')  # test ou prod
         
-        # URLs de l'API CinetPay - utiliser l'URL principale
-        self.base_url = 'https://api.cinetpay.com/v1'
-        self.checkout_url = 'https://api.cinetpay.com/v2'
+        # URLs de l'API CinetPay selon l'environnement
+        if self.environment == 'prod':
+            self.base_url = 'https://api.cinetpay.com/v1'
+            self.checkout_url = 'https://api.cinetpay.com/v2'
+        else:
+            self.base_url = 'https://api-sandbox.cinetpay.com/v1'
+            self.checkout_url = 'https://api-sandbox.cinetpay.com/v2'
         
         if not self.api_key or not self.site_id:
             logger.warning("Clés CinetPay non configurées")

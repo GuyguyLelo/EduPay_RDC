@@ -23,8 +23,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Forcer le chemin de base pour l'application
-FORCE_SCRIPT_NAME = '/edupay'
+# Forcer le chemin de base pour l'application (uniquement en production)
+if not DEBUG:
+    FORCE_SCRIPT_NAME = '/edupay/'
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
