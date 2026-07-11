@@ -1,9 +1,8 @@
 """
-Service pour l'intégration CinetPay avec l'API REST simplifiée
-Documentation: https://docs.cinetpay.com/api/1.0-fr/
+Service pour l'intégration CinetPay avec le SDK officiel
+Documentation: https://docs.cinetpay.com/api/1.0-fr/sdk/python
 """
 import logging
-import requests
 import json
 from decimal import Decimal
 from django.conf import settings
@@ -12,23 +11,22 @@ from .models import Paiement, StatutPaiement
 
 logger = logging.getLogger(__name__)
 
+try:
+    from cinetpay_sdk.s_d_k import Cinetpay
+    SDK_AVAILABLE = True
+except ImportError:
+    SDK_AVAILABLE = False
+    logger.warning("SDK CinetPay non disponible, utilisation de l'API REST")
+
 
 class CinetPayService:
-    """Service pour gérer les paiements via CinetPay (API REST)"""
+    """Service pour gérer les paiements via CinetPay (SDK officiel)"""
     
     def __init__(self):
-        """Initialise le service CinetPay avec l'API REST"""
+        """Initialise le service CinetPay avec le SDK"""
         self.api_key = getattr(settings, 'CINETPAY_API_KEY', '')
         self.site_id = getattr(settings, 'CINETPAY_SITE_ID', '')
         self.environment = getattr(settings, 'CINETPAY_ENV', 'test')  # test ou prod
-        
-        # URLs de l'API CinetPay
-        if self.environment == 'prod':
-            self.base_url = 'https://api.cinetpay.com/v1'
-            self.checkout_url = 'https://api.cinetpay.com/v2'
-        else:
-            self.base_url = 'https://api-sandbox.cinetpay.com/v1'
-            self.checkout_url = 'https://api-sandbox.cinetpay.com/v2'
         
         if not self.api_key or not self.site_id:
             logger.warning("Clés CinetPay non configurées")
@@ -37,6 +35,14 @@ class CinetPayService:
                 "Veuillez définir CINETPAY_API_KEY et CINETPAY_SITE_ID dans votre fichier .env. "
                 "Consultez env.example pour un exemple de configuration."
             )
+        
+        # Initialiser le client SDK si disponible
+        if SDK_AVAILABLE:
+            self.client = Cinetpay(self.api_key, self.site_id)
+            logger.info(f"Service CinetPay initialisé avec SDK (environnement: {self.environment})")
+        else:
+            self.client = None
+            logger.warning("SDK non disponible, fallback API REST")
         
         logger.info(f"Service CinetPay initialisé (environnement: {self.environment})")
     
@@ -163,53 +169,35 @@ class CinetPayService:
             }
     
     def initier_paiement_carte_bancaire(self, paiement: Paiement, redirect_url=None):
-        """Initie un paiement par carte bancaire via CinetPay"""
+        """Initie un paiement par carte bancaire via CinetPay (SDK)"""
         try:
             transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
             amount = float(paiement.montant)
             
-            # Préparer les données pour l'API CinetPay
-            data = {
-                'apikey': self.api_key,
-                'site_id': self.site_id,
-                'amount': amount,
-                'currency': paiement.devise,
-                'transaction_id': transaction_id,
-                'description': f"Paiement {paiement.frais.nom_frais} - {paiement.frais.etablissement.nom}",
-                'return_url': redirect_url or self._get_return_url(paiement.id),
-                'notify_url': self._get_notify_url(),
-                'cancel_url': self._get_cancel_url(paiement.id),
-                'customer_name': paiement.etudiant.nom_complet.split()[0] if paiement.etudiant.nom_complet else paiement.etudiant.prenom,
-                'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
-                'customer_email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else '',
-                # Champs supplémentaires requis par CinetPay
-                'customer_address': 'Kinshasa, RDC',
-                'customer_city': 'Kinshasa',
-                'customer_country': 'CD',
-                'customer_state': 'Kinshasa',
-                'customer_zip_code': '00000',
-                'channels': 'ALL',
-                'lang': 'fr'
-            }
-            
-            # Faire l'appel API avec requests
-            response = requests.post(
-                f"{self.checkout_url}/payment",
-                json=data,
-                headers={'Content-Type': 'application/json'},
-                timeout=30
-            )
-            
-            logger.info(f"Réponse CinetPay pour paiement {paiement.id}: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                if result.get('status') == 'accepted':
-                    logger.info(f"Paiement {paiement.id} initialisé avec succès")
+            if SDK_AVAILABLE and self.client:
+                # Utiliser le SDK officiel
+                data = {
+                    'amount': amount,
+                    'currency': paiement.devise,
+                    'transaction_id': transaction_id,
+                    'description': f"Paiement {paiement.frais.nom_frais} - {paiement.frais.etablissement.nom}",
+                    'return_url': redirect_url or self._get_return_url(paiement.id),
+                    'notify_url': self._get_notify_url(),
+                    'customer_name': paiement.etudiant.nom_complet.split()[0] if paiement.etudiant.nom_complet else paiement.etudiant.prenom,
+                    'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
+                }
+                
+                logger.info(f"Initialisation paiement via SDK: {data}")
+                result = self.client.PaymentInitialization(data)
+                logger.info(f"Réponse SDK: {result}")
+                
+                if result.get('code') == '201' and result.get('data'):
+                    payment_data = result['data']
+                    logger.info(f"Paiement {paiement.id} initialisé avec succès via SDK")
                     return {
                         'success': True,
                         'transaction_id': transaction_id,
-                        'payment_url': result.get('payment_url'),
+                        'payment_url': payment_data.get('payment_url'),
                         'message': result.get('message', 'Paiement initialisé')
                     }
                 else:
@@ -220,11 +208,11 @@ class CinetPayService:
                         'details': result
                     }
             else:
-                logger.error(f"Erreur API CinetPay pour paiement {paiement.id}: {response.status_code}")
+                # Fallback API REST (ne devrait pas arriver)
+                logger.error("SDK non disponible, impossible d'initialiser le paiement")
                 return {
                     'success': False,
-                    'error': f'Erreur API: {response.status_code}',
-                    'details': response.text
+                    'error': 'SDK CinetPay non disponible. Veuillez installer cinetpay-sdk.'
                 }
                 
         except Exception as e:
@@ -235,40 +223,31 @@ class CinetPayService:
             }
     
     def verifier_statut_paiement(self, transaction_id: str):
-        """Vérifie le statut d'un paiement via CinetPay"""
+        """Vérifie le statut d'un paiement via CinetPay (SDK)"""
         try:
-            data = {
-                'apikey': self.api_key,
-                'site_id': self.site_id,
-                'transaction_id': transaction_id
-            }
-            
-            # Utiliser le bon endpoint pour la vérification
-            response = requests.post(
-                f"{self.base_url}/payment/check",
-                json=data,
-                headers={'Content-Type': 'application/json'},
-                timeout=30
-            )
-            
-            logger.info(f"API CinetPay URL: {self.base_url}/payment/check")
-            logger.info(f"Données envoyées: {data}")
-            logger.info(f"Status code: {response.status_code}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                return {
-                    'success': True,
-                    'status': result.get('status'),
-                    'message': result.get('message'),
-                    'data': result
-                }
+            if SDK_AVAILABLE and self.client:
+                logger.info(f"Vérification du paiement {transaction_id} via SDK")
+                result = self.client.TransactionVerfication_trx(transaction_id)
+                logger.info(f"Réponse vérification SDK: {result}")
+                
+                if result.get('code') == '00':
+                    return {
+                        'success': True,
+                        'status': result.get('status'),
+                        'message': result.get('message'),
+                        'data': result
+                    }
+                else:
+                    return {
+                        'success': False,
+                        'error': result.get('message', 'Erreur lors de la vérification'),
+                        'details': result
+                    }
             else:
-                logger.error(f"Erreur API CinetPay: {response.status_code} - {response.text}")
+                logger.error("SDK non disponible, impossible de vérifier le paiement")
                 return {
                     'success': False,
-                    'error': f'Erreur API: {response.status_code}',
-                    'details': response.text
+                    'error': 'SDK CinetPay non disponible'
                 }
         except Exception as e:
             logger.error(f"Erreur lors de la vérification du paiement: {str(e)}")
