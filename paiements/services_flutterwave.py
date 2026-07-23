@@ -57,7 +57,7 @@ class FlutterwaveService:
             logger.warning(f"Impossible de générer l'URL de notification: {e}")
             return f"http://localhost:8000/api/paiements/webhook/flutterwave/"
     
-    def initier_paiement(self, paiement: Paiement, redirect_url=None):
+    def initier_paiement(self, paiement: Paiement, redirect_url=None, payment_method=None):
         """Initie un paiement via Flutterwave API REST"""
         try:
             transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
@@ -86,6 +86,10 @@ class FlutterwaveService:
                     'customer_name': paiement.etudiant.nom_complet or 'Test User'
                 }
             }
+            
+            # Si un mode de paiement spécifique est demandé
+            if payment_method:
+                data['payment_options'] = payment_method
             
             logger.info(f"Initialisation paiement Flutterwave: {data}")
             
@@ -124,6 +128,87 @@ class FlutterwaveService:
             
         except Exception as e:
             logger.error(f"Exception lors de l'initialisation du paiement: {str(e)}")
+            return {
+                'success': False,
+                'error': f'Erreur interne: {str(e)}'
+            }
+    
+    def initier_paiement_mobile_money(self, paiement: Paiement, operateur: str, redirect_url=None):
+        """Initie un paiement mobile money spécifique (Orange, Airtel, M-Pesa)"""
+        try:
+            transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
+            amount = int(float(paiement.montant))
+            
+            # Mapping des opérateurs vers les codes Flutterwave
+            operateur_mapping = {
+                'orange': 'mobilemoneycd',  # Orange Money RDC
+                'airtel': 'mobilemoneycd',  # Airtel Money RDC
+                'mpesa': 'mobilemoneycd',   # M-Pesa RDC
+            }
+            
+            payment_method = operateur_mapping.get(operateur.lower(), 'mobilemoneycd')
+            
+            # Préparer les données pour mobile money
+            data = {
+                'tx_ref': transaction_id,
+                'amount': amount,
+                'currency': paiement.devise,
+                'payment_options': payment_method,
+                'redirect_url': redirect_url or self._get_return_url(paiement.id),
+                'customer': {
+                    'email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else 'test@example.com',
+                    'phonenumber': paiement.numero_telephone or '',
+                    'name': paiement.etudiant.nom_complet or 'Test User'
+                },
+                'customizations': {
+                    'title': 'EduPay RDC',
+                    'description': f"Paiement {paiement.frais.nom_frais} via {operateur.upper()}",
+                    'logo': ''
+                },
+                'meta': {
+                    'paiement_id': str(paiement.id),
+                    'customer_name': paiement.etudiant.nom_complet or 'Test User',
+                    'operateur': operateur
+                }
+            }
+            
+            logger.info(f"Initialisation paiement mobile money {operateur}: {data}")
+            
+            # Utiliser l'API REST Flutterwave
+            headers = {
+                'Authorization': f'Bearer {self.secret_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/payments",
+                json=data,
+                headers=headers,
+                timeout=30
+            )
+            
+            logger.info(f"Réponse Flutterwave mobile money: {response.status_code} - {response.text}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('status') == 'success':
+                    payment_url = result.get('data', {}).get('link')
+                    if payment_url:
+                        return {
+                            'success': True,
+                            'transaction_id': transaction_id,
+                            'payment_url': payment_url,
+                            'message': f'Paiement {operateur.upper()} initialisé avec succès'
+                        }
+            
+            return {
+                'success': False,
+                'error': response.text if response.status_code != 200 else 'Erreur lors de l\'initialisation du paiement',
+                'details': response.text
+            }
+            
+        except Exception as e:
+            logger.error(f"Exception lors de l'initialisation du paiement mobile money: {str(e)}")
             return {
                 'success': False,
                 'error': f'Erreur interne: {str(e)}'

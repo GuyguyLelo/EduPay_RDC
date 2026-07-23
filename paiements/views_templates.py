@@ -98,7 +98,7 @@ def payer_frais(request, frais_id):
                 'has_operator_error': False
             })
         
-        # Créer le paiement sans l'initialiser immédiatement avec CinetPay
+        # Créer le paiement sans l'initialiser immédiatement
         paiement = Paiement.objects.create(
             etudiant=etudiant,
             frais=frais,
@@ -111,48 +111,14 @@ def payer_frais(request, frais_id):
             email_paiement=customer_email or None
         )
         
-        # ID de transaction unique pour CinetPay (et pour le webhook) - format plus simple
-        transaction_id = str(paiement.id)  # Utiliser juste l'ID du paiement
+        # ID de transaction unique
+        transaction_id = str(paiement.id)
         paiement.transaction_id = transaction_id
         paiement.reference_flutterwave = transaction_id
         paiement.save()
         
-        # Utiliser Flutterwave pour le paiement (plus fiable que CinetPay)
-        try:
-            from .services_flutterwave import FlutterwaveService
-            service = FlutterwaveService()
-            
-            # Initier le paiement via Flutterwave
-            result = service.initier_paiement(
-                paiement=paiement,
-                redirect_url=None
-            )
-            
-            logger.info(f"Résultat initialisation paiement Flutterwave: {result}")
-            
-            if result.get('success') and result.get('payment_url'):
-                # Rediriger vers l'URL de paiement Flutterwave
-                logger.info(f"Redirection vers URL de paiement: {result['payment_url']}")
-                return redirect(result['payment_url'])
-            else:
-                # Si l'API échoue, afficher une erreur
-                error_msg = result.get('error', 'Erreur lors de l\'initialisation du paiement')
-                logger.error(f"Échec initialisation paiement: {error_msg}")
-                messages.error(request, f"Erreur: {error_msg}")
-                return render(request, 'paiements/payer.html', {
-                    'frais': frais,
-                    'etudiant': etudiant,
-                    'has_operator_error': False
-                })
-            
-        except Exception as e:
-            logger.error(f"Erreur lors de l'initialisation du paiement: {str(e)}")
-            messages.error(request, f"Erreur de configuration du paiement: {str(e)}")
-            return render(request, 'paiements/payer.html', {
-                'frais': frais,
-                'etudiant': etudiant,
-                'has_operator_error': False
-            })
+        # Rediriger vers la page de sélection du mode de paiement
+        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
     
     # GET: afficher le formulaire coordonnées
     error_messages = list(messages.get_messages(request))
@@ -163,6 +129,89 @@ def payer_frais(request, frais_id):
         'etudiant': etudiant,
         'has_operator_error': has_operator_error
     })
+
+
+@login_required
+def selection_mode_paiement(request, paiement_id):
+    """Page de sélection du mode de paiement"""
+    if not request.user.is_etudiant:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    paiement = get_object_or_404(Paiement, id=paiement_id, etudiant=request.user.etudiant)
+    
+    if paiement.statut == StatutPaiement.SUCCESS:
+        messages.info(request, "Ce paiement a déjà été effectué avec succès.")
+        return redirect('etudiants_templates:etudiant_dashboard')
+    
+    context = {
+        'paiement': paiement,
+        'frais': paiement.frais,
+    }
+    
+    return render(request, 'paiements/selection_mode_paiement.html', context)
+
+
+@login_required
+def traiter_mode_paiement(request, paiement_id):
+    """Traite le choix du mode de paiement et redirige vers Flutterwave"""
+    if not request.user.is_etudiant:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès refusé")
+    
+    paiement = get_object_or_404(Paiement, id=paiement_id, etudiant=request.user.etudiant)
+    
+    if paiement.statut == StatutPaiement.SUCCESS:
+        messages.info(request, "Ce paiement a déjà été effectué avec succès.")
+        return redirect('etudiants_templates:etudiant_dashboard')
+    
+    mode_paiement = request.POST.get('mode_paiement')
+    
+    if not mode_paiement:
+        messages.error(request, "Veuillez sélectionner un mode de paiement.")
+        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+    
+    try:
+        from .services_flutterwave import FlutterwaveService
+        service = FlutterwaveService()
+        
+        # Mapper les modes de paiement
+        payment_method_mapping = {
+            'carte': 'card',
+            'orange': 'mobilemoneycd',
+            'airtel': 'mobilemoneycd',
+            'mpesa': 'mobilemoneycd',
+            'ussd': 'ussd',
+            'virement': 'banktransfer',
+        }
+        
+        payment_method = payment_method_mapping.get(mode_paiement, 'card')
+        
+        # Mettre à jour la méthode de paiement
+        paiement.methode_paiement = mode_paiement.upper()
+        paiement.save()
+        
+        # Initier le paiement avec le mode spécifique
+        result = service.initier_paiement(
+            paiement=paiement,
+            redirect_url=None,
+            payment_method=payment_method
+        )
+        
+        logger.info(f"Résultat initialisation paiement {mode_paiement}: {result}")
+        
+        if result.get('success') and result.get('payment_url'):
+            return redirect(result['payment_url'])
+        else:
+            error_msg = result.get('error', 'Erreur lors de l\'initialisation du paiement')
+            logger.error(f"Échec initialisation paiement: {error_msg}")
+            messages.error(request, f"Erreur: {error_msg}")
+            return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation du paiement: {str(e)}")
+        messages.error(request, f"Erreur de configuration du paiement: {str(e)}")
+        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
 
 
 @login_required
