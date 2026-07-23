@@ -117,20 +117,21 @@ def payer_frais(request, frais_id):
         paiement.reference_flutterwave = transaction_id
         paiement.save()
         
-        # Utiliser CinetPay pour le paiement
+        # Utiliser Flutterwave pour le paiement (plus fiable que CinetPay)
         try:
-            service = CinetPayService()
+            from .services_flutterwave import FlutterwaveService
+            service = FlutterwaveService()
             
-            # Initier le paiement via CinetPay (carte bancaire)
-            result = service.initier_paiement_carte_bancaire(
+            # Initier le paiement via Flutterwave
+            result = service.initier_paiement(
                 paiement=paiement,
                 redirect_url=None
             )
             
-            logger.info(f"Résultat initialisation paiement CinetPay: {result}")
+            logger.info(f"Résultat initialisation paiement Flutterwave: {result}")
             
             if result.get('success') and result.get('payment_url'):
-                # Rediriger vers l'URL de paiement CinetPay
+                # Rediriger vers l'URL de paiement Flutterwave
                 logger.info(f"Redirection vers URL de paiement: {result['payment_url']}")
                 return redirect(result['payment_url'])
             else:

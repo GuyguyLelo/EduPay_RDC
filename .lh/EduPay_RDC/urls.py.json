@@ -1,0 +1,30 @@
+{
+    "sourceFile": "EduPay_RDC/urls.py",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 3,
+            "patches": [
+                {
+                    "date": 1783801360245,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1783801439784,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-\"\"\"\n+\n URL configuration for EduPay_RDC project.\n \n from django.contrib import admin\n from django.urls import path, include\n"
+                },
+                {
+                    "date": 1783801670413,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,6 +1,6 @@\n \n-URL configuration for EduPay_RDC project.\n+URL configuration for EduPay_RDC project.urls\n \n from django.contrib import admin\n from django.urls import path, include\n from django.conf import settings\n"
+                },
+                {
+                    "date": 1783801752857,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,6 +1,8 @@\n \n-URL configuration for EduPay_RDC project.urls\n+\"\"\"\n+URL configuration for EduPay_RDC project.\n+\"\"\"\n \n from django.contrib import admin\n from django.urls import path, include\n from django.conf import settings\n"
+                }
+            ],
+            "date": 1783801360245,
+            "name": "Commit-0",
+            "content": "\"\"\"\nURL configuration for EduPay_RDC project.\n\nfrom django.contrib import admin\nfrom django.urls import path, include\nfrom django.conf import settings\nfrom django.conf.urls.static import static\nfrom core.views_templates import login_view, home_view\n\nurlpatterns = [\n    path('', login_view, name='home'),\n    path('admin/', admin.site.urls),\n    \n    # URLs de configuration temporaire pour Render\n    path('setup-admin/', include(('core.urls_admin', 'core'), namespace='admin_setup')),\n    \n    # Template URLs\n    path('auth/', include(('core.urls', 'core'), namespace='core_templates')),\n    path('dashboard/', include(('dashboard_admin.urls', 'dashboard_admin'), namespace='dashboard_admin_templates')),\n    path('etablissement/', include('etablissements.urls_templates')),\n    path('etudiant/', include('etudiants.urls_templates')),\n    path('frais/', include('frais.urls_templates')),\n    path('paiement/', include('paiements.urls_templates')),\n    \n    # API URLs\n    path('api/auth/', include('core.urls')),\n    path('api/etablissements/', include('etablissements.urls')),\n    path('api/etudiants/', include('etudiants.urls')),\n    path('api/frais/', include('frais.urls')),\n    path('api/paiements/', include('paiements.urls')),\n    path('api/dashboard/', include('dashboard_admin.urls')),\n]\n\n# URLs pour les médias en développement\nif settings.DEBUG:\n    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\n    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)\n"
+        }
+    ]
+}

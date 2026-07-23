@@ -61,7 +61,7 @@ class FlutterwaveService:
             if not RAVE_AVAILABLE:
                 return {
                     'success': False,
-                    'error': 'SDK Flutterwave non disponible'
+                    'error': 'SDK Flutterwave non disponible. Installez-le avec: pip install rave_python'
                 }
             
             transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
@@ -72,7 +72,7 @@ class FlutterwaveService:
                 'tx_ref': transaction_id,
                 'amount': amount,
                 'currency': paiement.devise,
-                'payment_options': 'card, mobilemoney, ussd',
+                'payment_options': 'card, mobilemoneyfr, ussd',
                 'redirect_url': redirect_url or self._get_return_url(paiement.id),
                 'customer': {
                     'email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else 'test@example.com',
@@ -91,10 +91,28 @@ class FlutterwaveService:
             
             logger.info(f"Initialisation paiement Flutterwave: {data}")
             
-            # Pour l'instant, retourner une erreur car nous n'avons pas les clés Flutterwave
+            # Utiliser le SDK Flutterwave
+            from rave_python import Rave
+            rave = Rave(self.public_key, self.secret_key)
+            
+            response = rave.Payment.initiate(data)
+            
+            logger.info(f"Réponse Flutterwave: {response}")
+            
+            if response and response.get('status') == 'success':
+                payment_url = response.get('data', {}).get('link')
+                if payment_url:
+                    return {
+                        'success': True,
+                        'transaction_id': transaction_id,
+                        'payment_url': payment_url,
+                        'message': 'Paiement initialisé avec succès'
+                    }
+            
             return {
                 'success': False,
-                'error': 'Configuration Flutterwave requise. Veuillez configurer FLUTTERWAVE_PUBLIC_KEY et FLUTTERWAVE_SECRET_KEY.'
+                'error': response.get('message', 'Erreur lors de l\'initialisation du paiement'),
+                'details': response
             }
             
         except Exception as e:

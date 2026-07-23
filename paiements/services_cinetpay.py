@@ -1,34 +1,36 @@
 """
-Service pour l'intégration CinetPay avec l'API REST
-Documentation: https://docs.cinetpay.com/api/1.0-fr/
+Service pour l'intégration CinetPay avec le SDK Python officiel
+Documentation: https://docs.cinetpay.com/api/1.0-fr/sdk/python
 """
 import logging
-import requests
-import json
-from decimal import Decimal
 from django.conf import settings
 from django.urls import reverse
 from .models import Paiement, StatutPaiement
+
+try:
+    from cinetpay_sdk.s_d_k import Cinetpay
+    SDK_AVAILABLE = True
+except ImportError:
+    SDK_AVAILABLE = False
+    logger.warning("SDK CinetPay non disponible")
 
 logger = logging.getLogger(__name__)
 
 
 class CinetPayService:
-    """Service pour gérer les paiements via CinetPay (API REST)"""
+    """Service pour gérer les paiements via CinetPay (SDK Python officiel)"""
     
     def __init__(self):
-        """Initialise le service CinetPay avec l'API REST"""
+        """Initialise le service CinetPay avec le SDK Python"""
         self.api_key = getattr(settings, 'CINETPAY_API_KEY', '')
         self.site_id = getattr(settings, 'CINETPAY_SITE_ID', '')
         self.environment = getattr(settings, 'CINETPAY_ENV', 'test')  # test ou prod
         
-        # URLs de l'API CinetPay selon l'environnement
-        if self.environment == 'prod':
-            self.base_url = 'https://api.cinetpay.com/v1'
-            self.checkout_url = 'https://api.cinetpay.com/v2'
-        else:
-            self.base_url = 'https://api-sandbox.cinetpay.com/v1'
-            self.checkout_url = 'https://api-sandbox.cinetpay.com/v2'
+        if not SDK_AVAILABLE:
+            raise ValueError(
+                "Le SDK CinetPay n'est pas installé. "
+                "Installez-le avec: pip install cinetpay-sdk"
+            )
         
         if not self.api_key or not self.site_id:
             logger.warning("Clés CinetPay non configurées")
@@ -38,7 +40,9 @@ class CinetPayService:
                 "Consultez env.example pour un exemple de configuration."
             )
         
-        logger.info(f"Service CinetPay initialisé (environnement: {self.environment})")
+        # Initialiser le client CinetPay
+        self.client = Cinetpay(self.api_key, self.site_id)
+        logger.info(f"Service CinetPay initialisé avec SDK (environnement: {self.environment})")
     
     def _convert_operateur(self, operateur: str) -> str:
         """Convertit l'opérateur en format CinetPay"""
@@ -90,22 +94,19 @@ class CinetPayService:
         }
     
     def initier_paiement_mobile_money(self, paiement: Paiement, numero_telephone: str, operateur: str):
-        """Initie un paiement Mobile Money via CinetPay"""
+        """Initie un paiement Mobile Money via CinetPay SDK"""
         try:
             transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
-            amount = float(paiement.montant)
+            amount = int(float(paiement.montant))
             
-            # Préparer les données pour l'API CinetPay
+            # Préparer les données pour le SDK CinetPay
             data = {
-                'apikey': self.api_key,
-                'site_id': self.site_id,
                 'amount': amount,
                 'currency': paiement.devise,
                 'transaction_id': transaction_id,
                 'description': f"Paiement {paiement.frais.nom_frais} - {paiement.frais.etablissement.nom}",
                 'return_url': self._get_return_url(paiement.id),
                 'notify_url': self._get_notify_url(),
-                'cancel_url': self._get_cancel_url(paiement.id),
                 'customer_name': paiement.etudiant.nom_complet.split()[0] if paiement.etudiant.nom_complet else paiement.etudiant.prenom,
                 'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
                 'customer_phone_number': numero_telephone,
@@ -120,39 +121,43 @@ class CinetPayService:
                 'lang': 'fr'
             }
             
-            # Faire l'appel API avec requests
-            response = requests.post(
-                f"{self.checkout_url}/payment",
-                json=data,
-                headers={'Content-Type': 'application/json'},
-                timeout=30
-            )
+            # Utiliser le SDK CinetPay
+            response = self.client.PaymentInitialization(data)
             
-            logger.info(f"Réponse CinetPay pour paiement {paiement.id}: {response.status_code}")
+            logger.info(f"Réponse CinetPay SDK pour paiement {paiement.id}: {response}")
             
-            if response.status_code == 200:
-                result = response.json()
-                if result.get('status') == 'accepted':
-                    logger.info(f"Paiement {paiement.id} initialisé avec succès")
-                    return {
-                        'success': True,
-                        'transaction_id': transaction_id,
-                        'payment_url': result.get('payment_url'),
-                        'message': result.get('message', 'Paiement initialisé')
-                    }
-                else:
-                    logger.error(f"Échec initialisation paiement {paiement.id}: {result}")
-                    return {
-                        'success': False,
-                        'error': result.get('message', 'Échec de l\'initialisation'),
-                        'details': result
-                    }
+            # Traiter la réponse du SDK
+            if isinstance(response, dict):
+                result = response
             else:
-                logger.error(f"Erreur API CinetPay pour paiement {paiement.id}: {response.status_code}")
+                try:
+                    result = response.__dict__ if hasattr(response, '__dict__') else {}
+                except:
+                    result = {}
+            
+            # Vérifier si le paiement a été initialisé avec succès
+            code = result.get('code', result.get('status', ''))
+            
+            if code == '201' or result.get('status') == 'SUCCESS' or 'payment_url' in str(result).lower():
+                # Paiement initié avec succès
+                data_dict = result.get('data', {}) if isinstance(result.get('data'), dict) else {}
+                payment_url = data_dict.get('payment_url', '') or result.get('payment_url', '')
+                
+                logger.info(f"Paiement {paiement.id} initialisé avec succès via SDK")
+                return {
+                    'success': True,
+                    'transaction_id': transaction_id,
+                    'payment_url': payment_url,
+                    'message': result.get('message', 'Paiement initialisé'),
+                    'data': result
+                }
+            else:
+                error_message = result.get('message', result.get('description', 'Échec de l\'initialisation'))
+                logger.error(f"Échec initialisation paiement {paiement.id}: {error_message}")
                 return {
                     'success': False,
-                    'error': f'Erreur API: {response.status_code}',
-                    'details': response.text
+                    'error': error_message,
+                    'details': result
                 }
                 
         except Exception as e:
@@ -163,15 +168,13 @@ class CinetPayService:
             }
     
     def initier_paiement_carte_bancaire(self, paiement: Paiement, redirect_url=None):
-        """Initie un paiement par carte bancaire via CinetPay (API REST)"""
+        """Initie un paiement par carte bancaire via CinetPay SDK"""
         try:
             transaction_id = f"EDUPAY_{paiement.id}_{int(paiement.date_creation.timestamp())}"
-            amount = float(paiement.montant)
+            amount = int(float(paiement.montant))
             
-            # Préparer les données pour l'API CinetPay
+            # Préparer les données pour le SDK CinetPay
             data = {
-                'apikey': self.api_key,
-                'site_id': self.site_id,
                 'amount': amount,
                 'currency': paiement.devise,
                 'transaction_id': transaction_id,
@@ -180,130 +183,101 @@ class CinetPayService:
                 'notify_url': self._get_notify_url(),
                 'customer_name': paiement.etudiant.nom_complet.split()[0] if paiement.etudiant.nom_complet else paiement.etudiant.prenom,
                 'customer_surname': paiement.etudiant.prenom if paiement.etudiant.prenom else paiement.etudiant.nom_complet.split()[-1] if paiement.etudiant.nom_complet else "",
+                'customer_email': paiement.etudiant.user.email if hasattr(paiement.etudiant, 'user') else '',
+                # Champs supplémentaires requis par CinetPay
+                'customer_address': 'Kinshasa, RDC',
+                'customer_city': 'Kinshasa',
+                'customer_country': 'CD',
+                'customer_state': 'Kinshasa',
+                'customer_zip_code': '00000',
+                'channels': 'ALL',
+                'lang': 'fr'
             }
             
-            # Essayer plusieurs endpoints possibles
-            endpoints = [
-                f"{self.checkout_url}/payment/initialize",
-                f"{self.checkout_url}/payment",
-                f"{self.base_url}/payment/initialize",
-            ]
+            # Utiliser le SDK CinetPay
+            response = self.client.PaymentInitialization(data)
             
-            for endpoint in endpoints:
+            logger.info(f"Réponse CinetPay SDK pour paiement carte {paiement.id}: {response}")
+            
+            # Traiter la réponse du SDK
+            if isinstance(response, dict):
+                result = response
+            else:
                 try:
-                    logger.info(f"Tentative endpoint: {endpoint}")
-                    response = requests.post(
-                        endpoint,
-                        json=data,
-                        headers={'Content-Type': 'application/json'},
-                        timeout=30
-                    )
-                    
-                    logger.info(f"Réponse CinetPay pour paiement {paiement.id}: {response.status_code} depuis {endpoint}")
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        logger.info(f"Réponse JSON: {result}")
-                        
-                        # Vérifier différents formats de réponse possibles
-                        if result.get('code') == '201' and result.get('data'):
-                            payment_data = result['data']
-                            logger.info(f"Paiement {paiement.id} initialisé avec succès")
-                            return {
-                                'success': True,
-                                'transaction_id': transaction_id,
-                                'payment_url': payment_data.get('payment_url'),
-                                'message': result.get('message', 'Paiement initialisé')
-                            }
-                        elif result.get('status') == 'accepted':
-                            logger.info(f"Paiement {paiement.id} initialisé avec succès")
-                            return {
-                                'success': True,
-                                'transaction_id': transaction_id,
-                                'payment_url': result.get('payment_url'),
-                                'message': result.get('message', 'Paiement initialisé')
-                            }
-                        else:
-                            logger.warning(f"Réponse non réussie depuis {endpoint}: {result}")
-                            continue
-                    else:
-                        logger.warning(f"Status code {response.status_code} depuis {endpoint}")
-                        continue
-                        
-                except Exception as e:
-                    logger.warning(f"Erreur avec endpoint {endpoint}: {e}")
-                    continue
+                    result = response.__dict__ if hasattr(response, '__dict__') else {}
+                except:
+                    result = {}
             
-            # Si tous les endpoints ont échoué
-            logger.error(f"Tous les endpoints ont échoué pour paiement {paiement.id}")
-            return {
-                'success': False,
-                'error': 'Tous les endpoints CinetPay ont échoué. Vérifiez vos clés API et la configuration.'
-            }
+            # Vérifier si le paiement a été initialisé avec succès
+            code = result.get('code', result.get('status', ''))
+            
+            if code == '201' or result.get('status') == 'SUCCESS' or 'payment_url' in str(result).lower():
+                # Paiement initié avec succès
+                data_dict = result.get('data', {}) if isinstance(result.get('data'), dict) else {}
+                payment_url = data_dict.get('payment_url', '') or result.get('payment_url', '')
+                
+                logger.info(f"Paiement carte {paiement.id} initialisé avec succès via SDK")
+                return {
+                    'success': True,
+                    'transaction_id': transaction_id,
+                    'payment_url': payment_url,
+                    'message': result.get('message', 'Paiement initialisé'),
+                    'data': result
+                }
+            else:
+                error_message = result.get('message', result.get('description', 'Échec de l\'initialisation'))
+                logger.error(f"Échec initialisation paiement carte {paiement.id}: {error_message}")
+                return {
+                    'success': False,
+                    'error': error_message,
+                    'details': result
+                }
                 
         except Exception as e:
-            logger.error(f"Exception lors de l'initialisation du paiement {paiement.id}: {str(e)}")
+            logger.error(f"Exception lors de l'initialisation du paiement carte {paiement.id}: {str(e)}")
             return {
                 'success': False,
                 'error': f'Erreur interne: {str(e)}'
             }
     
     def verifier_statut_paiement(self, transaction_id: str):
-        """Vérifie le statut d'un paiement via CinetPay (API REST)"""
+        """Vérifie le statut d'un paiement via CinetPay SDK"""
         try:
-            data = {
-                'apikey': self.api_key,
-                'site_id': self.site_id,
-                'transaction_id': transaction_id
-            }
+            # Utiliser le SDK CinetPay pour vérifier le statut
+            response = self.client.getPayStatus(transaction_id, self.site_id)
             
-            # Essayer plusieurs endpoints possibles pour la vérification
-            endpoints = [
-                f"{self.checkout_url}/payment/check",
-                f"{self.base_url}/payment/check",
-            ]
+            logger.info(f"Réponse vérification CinetPay SDK pour {transaction_id}: {response}")
             
-            for endpoint in endpoints:
+            # Traiter la réponse du SDK
+            if isinstance(response, dict):
+                result = response
+            else:
                 try:
-                    logger.info(f"Tentative vérification endpoint: {endpoint}")
-                    response = requests.post(
-                        endpoint,
-                        json=data,
-                        headers={'Content-Type': 'application/json'},
-                        timeout=30
-                    )
-                    
-                    logger.info(f"Réponse vérification: {response.status_code} depuis {endpoint}")
-                    
-                    if response.status_code == 200:
-                        result = response.json()
-                        logger.info(f"Réponse JSON vérification: {result}")
-                        
-                        if result.get('code') == '00':
-                            return {
-                                'success': True,
-                                'status': result.get('status'),
-                                'message': result.get('message'),
-                                'data': result
-                            }
-                        else:
-                            logger.warning(f"Réponse non réussie depuis {endpoint}: {result}")
-                            continue
-                    else:
-                        logger.warning(f"Status code {response.status_code} depuis {endpoint}")
-                        continue
-                        
-                except Exception as e:
-                    logger.warning(f"Erreur avec endpoint {endpoint}: {e}")
-                    continue
+                    result = response.__dict__ if hasattr(response, '__dict__') else {}
+                except:
+                    result = {}
             
-            logger.error(f"Tous les endpoints de vérification ont échoué")
-            return {
-                'success': False,
-                'error': 'Tous les endpoints de vérification ont échoué'
-            }
+            # Vérifier le statut du paiement
+            code = result.get('code', result.get('status', ''))
+            
+            if code == '00' or result.get('status') == 'ACCEPTED':
+                return {
+                    'success': True,
+                    'status': result.get('status', 'ACCEPTED'),
+                    'message': result.get('message', 'Paiement accepté'),
+                    'data': result
+                }
+            else:
+                error_message = result.get('message', result.get('description', 'Impossible de vérifier le paiement'))
+                logger.warning(f"Statut paiement non confirmé: {error_message}")
+                return {
+                    'success': False,
+                    'error': error_message,
+                    'details': result
+                }
+                
         except Exception as e:
-            logger.error(f"Erreur lors de la vérification du paiement: {str(e)}")
+            logger.error(f"Erreur lors de la vérification du paiement {transaction_id}: {str(e)}")
             return {
                 'success': False,
                 'error': f'Erreur interne: {str(e)}'
