@@ -244,7 +244,7 @@ LOGGING = {
 # Create logs directory if it doesn't exist
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
-# Configuration CinetPay
+# Configuration CinetPay (Obsolète - utiliser Flutterwave à la place)
 CINETPAY_API_KEY = os.environ.get('CINETPAY_API_KEY', '200492077654f2b6c8e9e4.263965826')
 CINETPAY_SITE_ID = os.environ.get('CINETPAY_SITE_ID', '578321')
 CINETPAY_ENV = os.environ.get('CINETPAY_ENV', 'prod')
@@ -252,6 +252,12 @@ CINETPAY_ENV = os.environ.get('CINETPAY_ENV', 'prod')
 # Configuration SMS CinetPay
 CINETPAY_SMS_API_KEY = os.environ.get('CINETPAY_SMS_API_KEY', '200492077654f2b6c8e9e4.263965826')
 CINETPAY_SMS_SENDER_ID = os.environ.get('CINETPAY_SMS_SENDER_ID', 'EDUPAY')
+
+# Configuration Flutterwave (Recommandé)
+# Le SDK rave_python utilise RAVE_PUBLIC_KEY et RAVE_SECRET_KEY
+RAVE_PUBLIC_KEY = os.environ.get('RAVE_PUBLIC_KEY', '')
+RAVE_SECRET_KEY = os.environ.get('RAVE_SECRET_KEY', '')
+FLUTTERWAVE_ENV = os.environ.get('FLUTTERWAVE_ENV', 'test')
 
 # Configuration du site
 SITE_URL = os.environ.get('SITE_URL', 'https://edupay-rdc-1.onrender.com')
