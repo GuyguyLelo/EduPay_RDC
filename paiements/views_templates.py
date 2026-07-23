@@ -118,7 +118,7 @@ def payer_frais(request, frais_id):
         paiement.save()
         
         # Rediriger vers la page de sélection du mode de paiement
-        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+        return redirect('paiements:selection_mode_paiement', paiement_id=paiement.id)
     
     # GET: afficher le formulaire coordonnées
     error_messages = list(messages.get_messages(request))
@@ -169,7 +169,7 @@ def traiter_mode_paiement(request, paiement_id):
     
     if not mode_paiement:
         messages.error(request, "Veuillez sélectionner un mode de paiement.")
-        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+        return redirect('paiements:selection_mode_paiement', paiement_id=paiement.id)
     
     try:
         from .services_flutterwave import FlutterwaveService
@@ -206,12 +206,12 @@ def traiter_mode_paiement(request, paiement_id):
             error_msg = result.get('error', 'Erreur lors de l\'initialisation du paiement')
             logger.error(f"Échec initialisation paiement: {error_msg}")
             messages.error(request, f"Erreur: {error_msg}")
-            return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+            return redirect('paiements:selection_mode_paiement', paiement_id=paiement.id)
         
     except Exception as e:
         logger.error(f"Erreur lors de l'initialisation du paiement: {str(e)}")
         messages.error(request, f"Erreur de configuration du paiement: {str(e)}")
-        return redirect('paiements_templates:selection_mode_paiement', paiement_id=paiement.id)
+        return redirect('paiements:selection_mode_paiement', paiement_id=paiement.id)
 
 
 @login_required

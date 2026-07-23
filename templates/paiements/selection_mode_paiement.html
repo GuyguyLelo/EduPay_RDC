@@ -19,7 +19,7 @@
                         <h4 class="mt-3">Montant: <span class="text-primary">{{ paiement.montant }} {{ paiement.devise }}</span></h4>
                     </div>
 
-                    <form method="post" action="{% url 'paiements_templates:traiter_mode_paiement' paiement.id %}">
+                    <form method="post" action="{% url 'paiements:traiter_mode_paiement' paiement.id %}">
                         {% csrf_token %}
                         
                         <h5 class="mb-3"><i class="bi bi-wallet2"></i> Modes de paiement disponibles</h5>
@@ -27,7 +27,7 @@
                         <div class="row g-3">
                             <!-- Orange Money -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('orange')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon orange-money">
                                             <i class="bi bi-phone"></i>
@@ -47,7 +47,7 @@
 
                             <!-- Airtel Money -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('airtel')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon airtel-money">
                                             <i class="bi bi-phone"></i>
@@ -67,7 +67,7 @@
 
                             <!-- M-Pesa -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('mpesa')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon mpesa">
                                             <i class="bi bi-phone"></i>
@@ -87,7 +87,7 @@
 
                             <!-- Carte bancaire -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('carte')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon card-bancaire">
                                             <i class="bi bi-credit-card"></i>
@@ -107,7 +107,7 @@
 
                             <!-- USSD -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('ussd')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon ussd">
                                             <i class="bi bi-phone-vibrate"></i>
@@ -127,7 +127,7 @@
 
                             <!-- Virement bancaire -->
                             <div class="col-md-6">
-                                <div class="card payment-option-card">
+                                <div class="card payment-option-card" onclick="selectPayment('virement')">
                                     <div class="card-body text-center">
                                         <div class="payment-icon virement">
                                             <i class="bi bi-bank"></i>
