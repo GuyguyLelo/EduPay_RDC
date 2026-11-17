@@ -3,69 +3,66 @@
 {% block title %}Dashboard Super Admin - EduPay RDC{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-2 sidebar">
-            <nav class="nav flex-column">
-                <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
-                    <i class="bi bi-speedometer2"></i> Vue d'ensemble
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
-                    <i class="bi bi-building"></i> Établissements
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
-                    <i class="bi bi-credit-card"></i> Paiements
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
-                    <i class="bi bi-graph-up"></i> Rapports
-                </a>
-                <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
-                    <i class="bi bi-calendar-check"></i> Abonnements
-                </a>
-            </nav>
+<div class="container-fluid page-shell">
+    <div class="row g-3">
+        <div class="col-lg-2">
+            <div class="sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="{% url 'dashboard_admin_templates:dashboard_overview' %}">
+                        <i class="bi bi-speedometer2"></i> Vue d'ensemble
+                    </a>
+                    <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_etablissements' %}">
+                        <i class="bi bi-building"></i> Établissements
+                    </a>
+                    <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_paiements' %}">
+                        <i class="bi bi-credit-card"></i> Paiements
+                    </a>
+                    <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_rapports' %}">
+                        <i class="bi bi-graph-up"></i> Rapports
+                    </a>
+                    <a class="nav-link" href="{% url 'dashboard_admin_templates:dashboard_abonnements' %}">
+                        <i class="bi bi-calendar-check"></i> Abonnements
+                    </a>
+                </nav>
+            </div>
         </div>
-        
-        <!-- Main Content -->
-        <div class="col-md-10">
-            <h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard Super Admin</h2>
-            
-            <!-- Statistiques -->
-            <div class="row mb-4">
+
+        <div class="col-lg-10">
+            <div class="page-header">
+                <div>
+                    <div class="page-kicker"><i class="bi bi-shield-lock"></i> Super administration</div>
+                    <h1 class="page-title">Tableau de bord</h1>
+                    <p class="page-subtitle">Pilotage national des établissements et des paiements</p>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card text-center">
-                        <div class="icon text-primary">
-                            <i class="bi bi-building"></i>
-                        </div>
+                        <div class="icon"><i class="bi bi-building"></i></div>
                         <h3>{{ stats.total_etablissements }}</h3>
-                        <p class="text-muted">Établissements</p>
+                        <p>Établissements</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card text-center">
-                        <div class="icon text-success">
-                            <i class="bi bi-people"></i>
-                        </div>
+                        <div class="icon"><i class="bi bi-people"></i></div>
                         <h3>{{ stats.total_etudiants }}</h3>
-                        <p class="text-muted">Étudiants</p>
+                        <p>Étudiants</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card text-center">
-                        <div class="icon text-info">
-                            <i class="bi bi-credit-card"></i>
-                        </div>
+                        <div class="icon"><i class="bi bi-credit-card"></i></div>
                         <h3>{{ stats.total_paiements }}</h3>
-                        <p class="text-muted">Paiements</p>
+                        <p>Paiements</p>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="stat-card text-center">
-                        <div class="icon text-warning">
-                            <i class="bi bi-cash-coin"></i>
-                        </div>
+                        <div class="icon"><i class="bi bi-cash-coin"></i></div>
                         <h3>{{ stats.revenus_totaux|floatformat:2 }} $</h3>
-                        <p class="text-muted">Revenus totaux</p>
+                        <p>Revenus totaux</p>
                     </div>
                 </div>
             </div>

@@ -55,11 +55,19 @@ class UserRegistrationForm(forms.ModelForm):
 class UserLoginForm(forms.Form):
     """Formulaire de connexion"""
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control login-input',
+            'placeholder': 'ex: etudiant@ecole.cd',
+            'autocomplete': 'username',
+        }),
         label='Email'
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control login-input',
+            'placeholder': 'Votre mot de passe',
+            'autocomplete': 'current-password',
+        }),
         label='Mot de passe'
     )
 

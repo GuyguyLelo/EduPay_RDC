@@ -11,6 +11,7 @@ urlpatterns = [
     path('success/<int:paiement_id>/', views_templates.paiement_success, name='paiement_success'),
     path('cancel/<int:paiement_id>/', views_templates.paiement_cancel, name='paiement_cancel'),
     path('qr-code/<int:paiement_id>/', views_templates.paiement_qr_code, name='paiement_qr_code'),
+    path('init/<int:paiement_id>/', views_templates.paiement_init_redirect, name='paiement_init_redirect'),
     path('verifier/<int:paiement_id>/', views_templates.paiement_verifier, name='paiement_verifier'),
     path('receipt/<int:paiement_id>/', views_templates.paiement_receipt, name='paiement_receipt'),
 ]

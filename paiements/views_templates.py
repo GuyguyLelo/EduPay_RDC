@@ -8,7 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.urls import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
 from frais.models import Frais
 from .models import Paiement, StatutPaiement
 from .services_cinetpay import CinetPayService
@@ -235,6 +236,83 @@ def paiement_qr_code(request, paiement_id):
         'qr_code_image': img_str,
         'payment_link': payment_link
     })
+
+
+@login_required
+@require_http_methods(["POST"])
+def paiement_init_redirect(request, paiement_id):
+    """
+    Fallback: initialise le paiement côté serveur et renvoie l'URL CinetPay.
+    Utilisé quand le SDK Seamless (cdn.cinetpay.com) ne peut pas être chargé.
+    """
+    if not request.user.is_etudiant:
+        return JsonResponse({'success': False, 'message': 'Accès refusé'}, status=403)
+
+    paiement = get_object_or_404(Paiement, id=paiement_id)
+    if paiement.etudiant.user != request.user:
+        return JsonResponse({'success': False, 'message': 'Accès refusé'}, status=403)
+
+    if paiement.statut == StatutPaiement.SUCCESS:
+        return JsonResponse({
+            'success': True,
+            'already_paid': True,
+            'redirect_url': reverse('paiements_templates:paiement_success', args=[paiement.id]),
+        })
+
+    # Réutiliser une URL déjà obtenue
+    if paiement.message_erreur and paiement.message_erreur.startswith('http'):
+        return JsonResponse({
+            'success': True,
+            'payment_url': paiement.message_erreur,
+        })
+
+    try:
+        service = CinetPayService()
+    except Exception as e:
+        logger.error("Init redirect: config CinetPay invalide: %s", e)
+        return JsonResponse({
+            'success': False,
+            'message': f'Configuration CinetPay invalide: {e}',
+        }, status=500)
+
+    email = paiement.email_paiement or request.user.email
+    phone = paiement.numero_telephone or ''
+    operateur = paiement.operateur or 'ORANGE'
+
+    try:
+        if phone:
+            result = service.initier_paiement_mobile_money(paiement, phone, operateur)
+            payment_url = result.get('payment_url') or result.get('payment_link')
+        else:
+            result = service.initier_paiement_carte_bancaire(paiement, email)
+            payment_url = result.get('payment_link') or result.get('payment_url')
+    except Exception as e:
+        error_text = str(e)
+        logger.exception("Init redirect échoué pour paiement %s: %s", paiement.id, e)
+        if 'getaddrinfo failed' in error_text or 'NameResolutionError' in error_text:
+            return JsonResponse({
+                'success': False,
+                'message': (
+                    "Le serveur CinetPay (api-checkout.cinetpay.com) est injoignable. "
+                    "Réessayez plus tard ou contactez support@cinetpay.com."
+                ),
+            }, status=503)
+        return JsonResponse({
+            'success': False,
+            'message': f"Impossible d'initialiser le paiement: {error_text}",
+        }, status=502)
+
+    if result.get('success') and payment_url:
+        return JsonResponse({
+            'success': True,
+            'payment_url': payment_url,
+            'transaction_id': result.get('transaction_id'),
+        })
+
+    return JsonResponse({
+        'success': False,
+        'message': result.get('message', "Impossible d'obtenir le lien de paiement CinetPay."),
+    }, status=502)
 
 
 @login_required

@@ -208,6 +208,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Payment Gateway Configuration
 # CinetPay (recommandé pour la RDC)
 CINETPAY_API_KEY = config('CINETPAY_API_KEY', default='')
+CINETPAY_SECRET_KEY = config('CINETPAY_SECRET_KEY', default='')
 CINETPAY_SITE_ID = config('CINETPAY_SITE_ID', default='')
 CINETPAY_ENV = config('CINETPAY_ENV', default='test', cast=str) or 'prod'
 
